@@ -1,0 +1,37 @@
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h1 style="margin: 0;">Statements</h1>
+  <%= button_to "Reset pg_stat_statements",
+                reset_pg_stat_statements_path,
+                method: :delete,
+                data: {
+                  confirm: "Are you sure you want to reset pg_stat_statements? This will clear all statement statistics."
+                },
+                class: "btn btn-danger",
+                style: "padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;" %>
+</div>
+
+<% if flash[:notice] %>
+  <div style="padding: 10px; margin-bottom: 20px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; border-radius: 4px;">
+    <%= flash[:notice] %>
+  </div>
+<% end %>
+
+<pre>
+query_log_tags_enabled: <%= @query_log_tags_enabled %>
+query_log_tags_format:  <%= @query_log_tags_format %>
+query_log_tags:         <%= @query_log_tags %>
+
+pg_stat_statements_reset_at: <%= @pg_stat_statements_reset_at %>
+</pre>
+
+<pre>
+  SELECT
+      queryid,
+      calls,
+      total_exec_time,
+      mean_exec_time,
+      rows,
+      query
+  FROM pg_stat_statements
+  WHERE query LIKE $$%/*action='<%= @action %>',application='<%= @application %>',namespaced_controller='<%= @namespaced_controller %>'*/%$$;
+</pre>

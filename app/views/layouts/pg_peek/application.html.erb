@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pg peek</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <%= yield :head %>
+
+  <%= javascript_include_tag "rails-ujs.js" %>
+  <%= stylesheet_link_tag "pg_peek/application", media: "all" %>
+</head>
+<body>
+
+<%= yield %>
+
+</body>
+</html>
