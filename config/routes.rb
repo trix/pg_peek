@@ -1,6 +1,15 @@
 PgPeek::Engine.routes.draw do
   resources :databases, only: [ :index, :show ] do
-    resources :pg_stat_statements, only: [ :index ]
+    resource :pg_stat_statements do
+      delete :reset
+
+      get :outliers
+      get :by_controller_action
+      get :by_job
+      get :by_table_name
+
+      root to: "pg_stat_statements#outliers"
+    end
   end
 
   root to: "databases#index"

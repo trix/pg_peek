@@ -1,7 +1,7 @@
 
 # https://docs.percona.com/pg-stat-monitor/comparison.html
 class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
-  def index
+  def outliers
     @query_log_tags_enabled = Rails.application.config.active_record.query_log_tags_enabled
     @query_log_tags_format = Rails.application.config.active_record.query_log_tags_format
     @query_log_tags = Rails.application.config.active_record.query_log_tags
@@ -37,10 +37,19 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
     @outliers = @pg_stat_statements.outliers
   end
 
-  def destroy
+  def by_controller_action
+  end
+
+  def by_job
+  end
+
+  def by_table_name
+  end
+
+  def reset
     @database = PgPeek::Database.find(params[:database_id])
     PgPeek::PgStatStatements.new(connection: @database.connection).reset!
 
-    redirect_to pg_stat_statements_path, notice: "pg_stat_statements has been reset successfully."
+    redirect_to root_database_pg_stat_statements_path(@database), notice: "pg_stat_statements has been reset successfully."
   end
 end
