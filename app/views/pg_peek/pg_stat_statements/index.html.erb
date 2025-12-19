@@ -1,7 +1,7 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
   <h1 style="margin: 0;">Statements</h1>
   <%= button_to "Reset pg_stat_statements",
-                reset_pg_stat_statements_path,
+                database_pg_stat_statements_path("primary"),
                 method: :delete,
                 data: {
                   confirm: "Are you sure you want to reset pg_stat_statements? This will clear all statement statistics."
@@ -17,23 +17,64 @@
 <% end %>
 
 <pre>
-query_log_tags_enabled: <%= @query_log_tags_enabled %>
-query_log_tags_format:  <%= @query_log_tags_format %>
-query_log_tags:         <%= @query_log_tags %>
+query_log_tags_enabled:               <%= @query_log_tags_enabled %>
+query_log_tags_format:                <%= @query_log_tags_format %>
+query_log_tags:                       <%= @query_log_tags %>
+query_log_tags_prepend_comment:       <%= @query_log_tags_prepend_comment %>
 
-pg_stat_statements_reset_at: <%= @pg_stat_statements_reset_at %>
-pg_stat_statements_installed_version: <%= @pg_stat_statements_installed_version %>
-pg_stat_statements_default_version: <%= @pg_stat_statements_default_version %>
+pg_stat_statements_reset_at:          <%= @pg_stat_statements.reset_at %>
+pg_stat_statements_installed_version: <%= @pg_stat_statements.installed_version %>
+pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
 </pre>
 
-<pre>
-  SELECT
-      queryid,
-      calls,
-      total_exec_time,
-      mean_exec_time,
-      rows,
-      query
-  FROM pg_stat_statements
-  WHERE query LIKE $$%/*action='<%= @action %>',application='<%= @application %>',namespaced_controller='<%= @namespaced_controller %>'*/%$$;
-</pre>
+
+<h1>Outliers</h1>
+<% if @outliers.present? %>
+  <table style="width: 100%;" border="1">
+    <thead>
+      <tr>
+        <th width="30">Execution Time</th>
+        <th>Query</th>
+        <th>Comment</th>
+        <th>Calls</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @outliers.each do |outlier| %>
+        <tr>
+          <td>
+            <%= ActiveSupport::Duration.parse(outlier["total_exec_time"]).to_s %>
+          </td>
+          <td>
+            <pre style="white-space: pre-wrap; max-width: 1200px; overflow: auto; max-height: 1.2em; font-family: monospace;">
+              <%= strip_sqlcommenter(outlier["query"]).squish %>
+            </pre>
+          </td>
+          <td>
+            <% if (comment = extract_comment(outlier["query"])) %>
+              <% sqlcommenter_to_hash(comment).each do |key, value| %>
+                <%= key %>: <%= value %><br>
+              <% end %>
+            <% end %>
+          </td>
+          <td>
+            <%= outlier["ncalls"] %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>No outliers found.</p>
+<% end %>
+
+<ol>
+<% @controllers_actions.each do |controller, actions| %>
+  <li>
+    <% actions.each do |action| %>
+      <b><%= controller %>#<%= action %></b><br>
+      <pre>$$%/*action='<%= action %>',application='<%= @application %>',namespaced_controller='<%= ERB::Util.url_encode(controller) %>'*/%$$</pre>
+    <% end %>
+  </li>
+<% end %>
+</ol>

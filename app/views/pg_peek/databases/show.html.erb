@@ -1,0 +1,39 @@
+<h1>Database Details</h1>
+
+<pre>
+name: <%= @database.name %>
+primary: <%= @database.primary %>
+replica: <%= @database.replica %>
+schema_format: <%= @database.schema_format %>
+
+version: <%= @database.version %>
+</pre>
+
+<pre>
+<% @database.installed_extensions.each do |extension| %>
+<%= extension['name'] %> <b><%= extension['installed_version'] %></b>
+<% end %>
+</pre>
+
+<%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
+
+<h2>Tables (<%= @database.tables.count %>)</h2>
+
+<form>
+  <datalist id="table-list">
+  <% @database.tables.each do |table| %>
+    <option value="<%= table %>">
+  <% end %>
+  </datalist>
+</form>
+
+<form  method="get">
+  <label for="table">Choose a table:</label>
+  <input list="table-list" name="table" id="table">
+  <datalist id="table-list">
+    <% @database.tables.each do |table| %>
+      <option value="<%= table %>">
+    <% end %>
+  </datalist>
+  <input type="submit">
+</form>

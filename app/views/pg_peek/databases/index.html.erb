@@ -1,0 +1,9 @@
+<h1>Databases</h1>
+
+<ul>
+  <% @databases.each do |database| %>
+    <li>
+      <%= link_to database.name, database_path(database) %> | <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(database) %>
+    </li>
+  <% end %>
+</ul>
