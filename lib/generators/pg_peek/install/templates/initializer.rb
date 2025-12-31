@@ -6,9 +6,7 @@ Rails.application.config.pg_peek.tap do |config|
   # Maps database names (from database.yml) to their ActiveRecord base class.
   # Example:
   config.connections = {
-    "primary" => "ApplicationRecord",
-    # "tracking" => "Tracking::ApplicationRecord",
-    # "analytics" => "Analytics::Record",
+    "primary" => "ApplicationRecord"
   }
 
   # Stats provider for query analysis.
