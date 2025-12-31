@@ -3,17 +3,19 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main, master]
+
+env:
+  RUBY_VERSION: "3.4"
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      RUBY_VERSION: 3.4.6
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -37,33 +39,55 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # services:
-    #  redis:
-    #    image: valkey/valkey:8
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ["16", "17", "18"]
+
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pg_peek_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      RAILS_ENV: test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4.6
+          ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
 
+      - name: Setup database
+        run: |
+          cd test/dummy
+          bundle exec rails db:create db:migrate
+
       - name: Run tests
-        env:
-          RAILS_ENV: test
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        run: bundle exec rake test
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: screenshots
+          name: screenshots-pg${{ matrix.postgres }}
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore

@@ -134,7 +134,28 @@ version: <%= @database.version %>
 <% end %>
 </pre>
 
-<%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
+<% if @pg_stat_statements.installed? %>
+  <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
+<% elsif @pg_stat_statements.available? %>
+  <article aria-label="pg_stat_statements not enabled">
+    <header>pg_stat_statements extension is not enabled</header>
+    <p>To enable query performance monitoring, run the following SQL:</p>
+    <pre><code>CREATE EXTENSION pg_stat_statements;</code></pre>
+    <footer>
+      <small>Note: You may need superuser privileges to create extensions.</small>
+    </footer>
+  </article>
+<% else %>
+  <article aria-label="pg_stat_statements not available">
+    <header>pg_stat_statements extension is not available</header>
+    <p>The pg_stat_statements extension is not available on this PostgreSQL server.</p>
+    <p>To make it available, add to <code>postgresql.conf</code>:</p>
+    <pre><code>shared_preload_libraries = 'pg_stat_statements'</code></pre>
+    <footer>
+      <small>A server restart is required after this change.</small>
+    </footer>
+  </article>
+<% end %>
 
 <h1>Tables (<%= @database.tables.count %>)</h1>
 

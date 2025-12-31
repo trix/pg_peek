@@ -1,0 +1,50 @@
+require "test_helper"
+
+class PgStatStatementsVisibilityTest < ActionDispatch::IntegrationTest
+  setup do
+    @database = PgPeek::Database.find("primary")
+    @pg_stat_statements = PgPeek::PgStatStatements.new(connection: @database.connection)
+  end
+
+  test "shows warning with SQL when pg_stat_statements is available but not installed" do
+    skip "pg_stat_statements not available on this server" unless @pg_stat_statements.available?
+
+    # Ensure extension is not installed
+    drop_extension_if_exists
+
+    get pg_peek.database_path(@database)
+
+    assert_response :success
+    assert_select "article[aria-label='pg_stat_statements not enabled']" do
+      assert_select "header", text: "pg_stat_statements extension is not enabled"
+      assert_select "code", text: "CREATE EXTENSION pg_stat_statements;"
+    end
+    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", count: 0
+  end
+
+  test "shows link to pg_stat_statements when extension is installed" do
+    skip "pg_stat_statements not available on this server" unless @pg_stat_statements.available?
+
+    # Ensure extension is not installed first
+    drop_extension_if_exists
+
+    # Install the extension
+    @database.connection.execute("CREATE EXTENSION pg_stat_statements")
+
+    get pg_peek.database_path(@database)
+
+    assert_response :success
+    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", text: "pg_stat_statements"
+    assert_select "article[aria-label='pg_stat_statements not enabled']", count: 0
+  ensure
+    drop_extension_if_exists
+  end
+
+  private
+
+  def drop_extension_if_exists
+    @database.connection.execute("DROP EXTENSION IF EXISTS pg_stat_statements")
+  rescue ActiveRecord::StatementInvalid
+    # Ignore errors if extension doesn't exist or can't be dropped
+  end
+end
