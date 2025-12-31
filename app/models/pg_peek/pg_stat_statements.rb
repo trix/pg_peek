@@ -1,4 +1,3 @@
-# https://gist.github.com/defkode/7994b790e0321c12398f54763ad78f8c
 # https://gist.github.com/defkode/63ac230e4175f7c46db92e6fad0a1d09
 
 class PgPeek::PgStatStatements

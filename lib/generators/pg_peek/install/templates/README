@@ -1,0 +1,16 @@
+
+===============================================================================
+
+PgPeek has been installed!
+
+Next steps:
+
+1. Mount the engine in your config/routes.rb:
+
+   mount PgPeek::Engine, at: "/pg_peek"
+
+2. Configure options in config/initializers/pg_peek.rb (optional)
+
+3. Visit /pg_peek to view your PostgreSQL databases
+
+===============================================================================
