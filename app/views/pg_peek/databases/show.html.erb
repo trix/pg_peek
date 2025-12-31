@@ -137,7 +137,7 @@ version: <%= @database.version %>
 <% if @pg_stat_statements.installed? %>
   <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
 <% elsif @pg_stat_statements.available? %>
-  <article aria-label="pg_stat_statements not enabled">
+  <article aria-label="Extension pg_stat_statements is not enabled">
     <header>pg_stat_statements extension is not enabled</header>
     <p>To enable query performance monitoring, run the following SQL:</p>
     <pre><code>CREATE EXTENSION pg_stat_statements;</code></pre>
@@ -146,7 +146,7 @@ version: <%= @database.version %>
     </footer>
   </article>
 <% else %>
-  <article aria-label="pg_stat_statements not available">
+  <article aria-label="Extension pg_stat_statements is not available">
     <header>pg_stat_statements extension is not available</header>
     <p>The pg_stat_statements extension is not available on this PostgreSQL server.</p>
     <p>To make it available, add to <code>postgresql.conf</code>:</p>
