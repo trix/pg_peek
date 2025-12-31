@@ -1,3 +1,122 @@
+<script type="module">
+  import { Controller, Application } from "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3/dist/stimulus.js"
+
+  const application = Application.start()
+
+  class SearchFilterController extends Controller {
+    static targets = ["input", "count", "item", "summary", "empty"]
+    static values = { debounce: { type: Number, default: 300 }, minChars: { type: Number, default: 2 } }
+
+    connect() {
+      this.originalTexts = new Map()
+      this.summaryTargets.forEach((summary, index) => {
+        this.originalTexts.set(index, summary.textContent)
+      })
+
+      const urlParams = new URLSearchParams(window.location.search)
+      const query = urlParams.get("q")
+      if (query) {
+        this.inputTarget.value = query
+        this.filter()
+      }
+
+      document.addEventListener("keydown", this.handleGlobalKeydown.bind(this))
+    }
+
+    disconnect() {
+      document.removeEventListener("keydown", this.handleGlobalKeydown.bind(this))
+    }
+
+    handleGlobalKeydown(event) {
+      if (event.key === "/" && document.activeElement !== this.inputTarget) {
+        event.preventDefault()
+        this.inputTarget.focus()
+      }
+      if (event.key === "Escape" && document.activeElement === this.inputTarget) {
+        this.clear()
+      }
+    }
+
+    onInput() {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = setTimeout(() => this.filter(), this.debounceValue)
+    }
+
+    filter() {
+      const query = this.inputTarget.value.trim().toLowerCase()
+
+      this.updateUrl(query)
+
+      if (query.length < this.minCharsValue) {
+        this.hideAll()
+        return
+      }
+
+      let matchCount = 0
+
+      this.itemTargets.forEach((item, index) => {
+        const tableName = item.dataset.tableName
+        const originalText = this.originalTexts.get(index)
+
+        if (tableName.includes(query)) {
+          item.hidden = false
+          matchCount++
+          this.highlightMatch(this.summaryTargets[index], originalText, query)
+        } else {
+          item.hidden = true
+          this.summaryTargets[index].innerHTML = originalText
+        }
+      })
+
+      this.updateCount(matchCount)
+      this.emptyTarget.hidden = matchCount > 0
+    }
+
+    highlightMatch(summary, originalText, query) {
+      const lowerText = originalText.toLowerCase()
+      const index = lowerText.indexOf(query)
+      if (index >= 0) {
+        const before = originalText.substring(0, index)
+        const match = originalText.substring(index, index + query.length)
+        const after = originalText.substring(index + query.length)
+        summary.innerHTML = `${before}<mark>${match}</mark>${after}`
+      }
+    }
+
+    hideAll() {
+      this.itemTargets.forEach((item, index) => {
+        item.hidden = true
+        this.summaryTargets[index].innerHTML = this.originalTexts.get(index)
+      })
+      this.updateCount(0)
+      this.emptyTarget.hidden = true
+    }
+
+    clear() {
+      this.inputTarget.value = ""
+      this.hideAll()
+      this.updateUrl("")
+    }
+
+    updateCount(count) {
+      const word = count === 1 ? "table" : "tables"
+      this.countTarget.textContent = `${count} ${word} found`
+    }
+
+    updateUrl(query) {
+      const url = new URL(window.location)
+      if (query) {
+        url.searchParams.set("q", query)
+      } else {
+        url.searchParams.delete("q")
+      }
+      history.replaceState(null, "", url)
+    }
+  }
+
+  application.register("search-filter", SearchFilterController)
+</script>
+
 <h1>Database Details</h1>
 
 <pre>
@@ -16,3 +135,24 @@ version: <%= @database.version %>
 </pre>
 
 <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
+
+<h1>Tables (<%= @database.tables.count %>)</h1>
+
+<div data-controller="search-filter" data-search-filter-debounce-value="300" data-search-filter-min-chars-value="2">
+  <input type="search"
+         placeholder="Search tables... (press / to focus)"
+         data-search-filter-target="input"
+         data-action="input->search-filter#onInput"
+         autofocus
+         autocomplete="off">
+  <p data-search-filter-target="count">0 tables found</p>
+
+  <% @database.tables.each do |table_name| %>
+    <details data-search-filter-target="item" data-table-name="<%= table_name.downcase %>" hidden>
+      <summary data-search-filter-target="summary"><%= table_name %></summary>
+      <p>...</p>
+    </details>
+  <% end %>
+
+  <p data-search-filter-target="empty" hidden>No tables found</p>
+</div>

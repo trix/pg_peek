@@ -1,7 +1,5 @@
 PgPeek::Engine.routes.draw do
   resources :databases, only: [ :index, :show ] do
-    get :tables
-
     resource :pg_stat_statements do
       delete :reset
 

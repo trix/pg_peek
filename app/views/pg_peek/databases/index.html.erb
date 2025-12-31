@@ -12,8 +12,14 @@
       <br>
 
       <%= link_to database.name, database_path(database) %> |
-        <%= link_to 'tables', database_tables_path(database) %> |
-        <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(database) %>
+        <% if Rails.application.config.pg_peek.stats_provider == :pg_stat_statements %>
+          <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(database) %>
+        <% end %>
+
+      <% if Rails.application.config.pg_peek.stats_provider == :pg_stat_monitor %>
+        pg_stat_monitor (TODO)
+      <% end %>
+
     </div>
   <% end %>
 </div>
