@@ -21,6 +21,7 @@ $ bundle
 Or install it yourself as:
 ```bash
 $ gem install pg_peek
+$ rails generate pg_peek:install
 ```
 
 ## Contributing

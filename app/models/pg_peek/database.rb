@@ -1,11 +1,15 @@
 class PgPeek::Database
   attr_reader :name, :primary, :replica, :schema_format
 
-  def self.all
+  def self.available_postgres_databases
     ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).select do |db_config|
       db_config.adapter == "postgresql"
-    end.map do |db_config|
-      PgPeek::Database.new(
+    end
+  end
+
+  def self.all
+    available_postgres_databases.map do |db_config|
+      db = PgPeek::Database.new(
         name: db_config.name,
         primary: db_config.primary?,
         replica: db_config.replica?,
@@ -30,12 +34,12 @@ class PgPeek::Database
   end
 
   def connection
-    case name
-    when "primary"
-      ApplicationRecord.connection
-    when "tracking"
-      Tracking::ApplicationRecord.connection
-    end
+    connection_class = PgPeek.config.connection_class_for(name)
+    connection_class&.connection
+  end
+
+  def connection_configured?
+    connection.present?
   end
 
   def version_full

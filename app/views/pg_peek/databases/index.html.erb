@@ -1,7 +1,7 @@
 <h1>Databases</h1>
 
 <div class="grid">
-  <% @databases.each do |database| %>
+  <% @databases.select(&:connection_configured?).each do |database| %>
     <div>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" height="64">
         <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
