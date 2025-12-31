@@ -38,8 +38,12 @@ class PgPeek::Database
     end
   end
 
+  def version_full
+    @version_full ||= connection.execute("SELECT version()").first["version"]
+  end
+
   def version
-    @version ||= connection.execute("SELECT version()").first["version"]
+    @version ||= version_full.match(/PostgreSQL ([\d.]+)/)[1]
   end
 
   def installed_extensions

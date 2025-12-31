@@ -1,6 +1,8 @@
 # PgPeek
 Short description and motivation.
 
+![PgPeek Logo](app/assets/images/pg_peek/logo.png)
+
 ## Usage
 How to use my plugin.
 
