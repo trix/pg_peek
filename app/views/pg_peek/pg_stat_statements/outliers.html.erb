@@ -30,7 +30,7 @@ pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
 
 <h1>Outliers</h1>
 <% if @outliers.present? %>
-  <table style="width: 100%;" border="1">
+  <table>
     <thead>
       <tr>
         <th width="30">Execution Time</th>
@@ -46,7 +46,7 @@ pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
             <%= ActiveSupport::Duration.parse(outlier["total_exec_time"]).to_s %>
           </td>
           <td>
-            <pre style="white-space: pre-wrap; max-width: 1200px; overflow: auto; max-height: 1.2em; font-family: monospace;">
+            <pre>
               <%= strip_sqlcommenter(outlier["query"]).squish %>
             </pre>
           </td>

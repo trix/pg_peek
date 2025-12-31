@@ -6,4 +6,8 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
   def show
     @database = PgPeek::Database.find(params[:id])
   end
+
+  def tables
+    @database = PgPeek::Database.find(params[:database_id])
+  end
 end
