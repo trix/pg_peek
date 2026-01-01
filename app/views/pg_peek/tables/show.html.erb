@@ -1,0 +1,143 @@
+<nav aria-label="Breadcrumb">
+  <%= link_to "Databases", databases_path %> &gt;
+  <%= link_to @database.name, database_path(@database) %> &gt;
+  <strong><%= @table.name %></strong>
+</nav>
+
+<h1><%= @table.name %> <%= chart_icon_svg %></h1>
+
+<% seconds_elapsed = @table.seconds_since_reset %>
+
+<article aria-label="Cache Performance">
+  <header>Cache Performance</header>
+  <table>
+    <tbody>
+      <tr>
+        <th>Heap Cache Hit</th>
+        <td><%= format_percentage(@table.heap_cache_hit_ratio) %></td>
+      </tr>
+      <tr>
+        <th>Index Cache Hit</th>
+        <td><%= format_percentage(@table.index_cache_hit_ratio) %></td>
+      </tr>
+      <tr>
+        <th>Toast Cache Hit</th>
+        <td><%= format_percentage(@table.toast_cache_hit_ratio) %></td>
+      </tr>
+      <tr>
+        <th>Toast Index Cache Hit</th>
+        <td><%= format_percentage(@table.toast_index_cache_hit_ratio) %></td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+
+<article aria-label="Row Activity">
+  <header>Row Activity</header>
+  <table>
+    <tbody>
+      <tr>
+        <th>Estimated Rows</th>
+        <td><%= format_number(@table.row_estimate) %></td>
+      </tr>
+      <tr>
+        <th>Sequential Scans</th>
+        <td>
+          <%= format_number(@table.seq_scan) %>
+          <% if @table.seq_scan_percentage %>
+            (<%= @table.seq_scan_percentage %>%)
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <th>Index Scans</th>
+        <td>
+          <%= format_number(@table.idx_scan) %>
+          <% if @table.idx_scan_percentage %>
+            (<%= @table.idx_scan_percentage %>%)
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <th>Index Usage</th>
+        <td><%= format_percentage(@table.index_usage_percentage) %></td>
+      </tr>
+      <tr>
+        <th>Rows Fetched</th>
+        <td><%= format_count_with_rate(@table.rows_fetched, seconds_elapsed) %></td>
+      </tr>
+      <tr>
+        <th>Rows Inserted</th>
+        <td><%= format_count_with_rate(@table.rows_inserted, seconds_elapsed) %></td>
+      </tr>
+      <tr>
+        <th>Rows Updated</th>
+        <td><%= format_count_with_rate(@table.rows_updated, seconds_elapsed) %></td>
+      </tr>
+      <tr>
+        <th>Rows Deleted</th>
+        <td><%= format_count_with_rate(@table.rows_deleted, seconds_elapsed) %></td>
+      </tr>
+      <tr>
+        <th>Live Tuples</th>
+        <td><%= format_number(@table.live_tuples) %></td>
+      </tr>
+      <tr>
+        <th>Dead Tuples</th>
+        <td>
+          <%= format_number(@table.dead_tuples) %>
+          <% if @table.dead_tuple_ratio %>
+            (<%= @table.dead_tuple_ratio %>% of total)
+          <% end %>
+          <% if @table.dead_tuple_warning? %>
+            <br><small><em>Consider running VACUUM</em></small>
+          <% end %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+
+<article aria-label="Maintenance">
+  <header>Maintenance</header>
+  <table>
+    <tbody>
+      <tr>
+        <th>Last Vacuum</th>
+        <td><%= format_time_ago(@table.last_vacuum) %></td>
+      </tr>
+      <tr>
+        <th>Last Autovacuum</th>
+        <td><%= format_time_ago(@table.last_autovacuum) %></td>
+      </tr>
+      <tr>
+        <th>Last Analyze</th>
+        <td><%= format_time_ago(@table.last_analyze) %></td>
+      </tr>
+      <tr>
+        <th>Last Autoanalyze</th>
+        <td><%= format_time_ago(@table.last_autoanalyze) %></td>
+      </tr>
+      <tr>
+        <th>Vacuum Count</th>
+        <td><%= format_number(@table.vacuum_count) %></td>
+      </tr>
+      <tr>
+        <th>Autovacuum Count</th>
+        <td><%= format_number(@table.autovacuum_count) %></td>
+      </tr>
+      <tr>
+        <th>Analyze Count</th>
+        <td><%= format_number(@table.analyze_count) %></td>
+      </tr>
+      <tr>
+        <th>Autoanalyze Count</th>
+        <td><%= format_number(@table.autoanalyze_count) %></td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+
+<p>
+  <%= link_to "View queries for this table", outliers_database_pg_stat_statements_path(@database, table: @table.name) %>
+</p>

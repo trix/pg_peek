@@ -9,7 +9,10 @@
       "Bash(bundle exec ruby:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(bundle lock:*)"
+      "Bash(bundle lock:*)",
+      "Bash(bin/rubocop:*)",
+      "Bash(POSTGRES_USER=tomasz POSTGRES_PASSWORD= bundle exec rake:*)",
+      "Bash(POSTGRES_USER=tomasz POSTGRES_PASSWORD= bundle exec rails:*)"
     ]
   }
 }

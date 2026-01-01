@@ -29,6 +29,16 @@ pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
 
 
 <h1>Outliers</h1>
+
+<% if @table_filter.present? %>
+  <article aria-label="Table filter active">
+    <p>
+      Showing queries for table: <strong><%= @table_filter %></strong>
+      <%= link_to "Clear filter", database_pg_stat_statements_outliers_path(@database) %>
+    </p>
+  </article>
+<% end %>
+
 <% if @outliers.present? %>
   <table>
     <thead>

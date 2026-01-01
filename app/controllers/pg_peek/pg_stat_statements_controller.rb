@@ -35,6 +35,11 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
     @application = Rails.application.class.module_parent_name
 
     @outliers = @pg_stat_statements.outliers
+    @table_filter = params[:table]
+
+    if @table_filter.present?
+      @outliers = filter_outliers_by_table(@outliers, @table_filter)
+    end
   end
 
   def by_controller_action
@@ -51,5 +56,13 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
     PgPeek::PgStatStatements.new(connection: @database.connection).reset!
 
     redirect_to root_database_pg_stat_statements_path(@database), notice: "pg_stat_statements has been reset successfully."
+  end
+
+  private
+
+  def filter_outliers_by_table(outliers, table_name)
+    # Match table in FROM, JOIN, UPDATE, INSERT INTO, DELETE FROM clauses
+    pattern = /\b(FROM|JOIN|UPDATE|INTO|DELETE\s+FROM)\s+["']?#{Regexp.escape(table_name)}["']?\b/i
+    outliers.select { |outlier| outlier["query"]&.match?(pattern) }
   end
 end
