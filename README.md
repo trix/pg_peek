@@ -56,7 +56,7 @@ docker compose up postgres18 -d
 
 # Setup the dummy app database
 cd test/dummy
-rails db:create db:migrate db:seed
+rails db:prepare
 
 # Start the development server
 rails s
@@ -78,27 +78,11 @@ POSTGRES_PORT=5433 rails db:create db:migrate
 
 ```bash
 # Run the full test suite
-rake test
-
-# Run a specific test file
-ruby -Itest test/models/pg_peek/database_test.rb
+bin/rails test
 
 # Code style check
 bin/rubocop
-
-# Auto-fix style issues
-bin/rubocop -A
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/my-feature`)
-3. Make your changes and add tests
-4. Ensure tests pass (`rake test`) and code style is clean (`bin/rubocop`)
-5. Commit your changes (`git commit -am 'Add my feature'`)
-6. Push to the branch (`git push origin feature/my-feature`)
-7. Open a Pull Request
 
 ## License
 

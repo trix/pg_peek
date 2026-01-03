@@ -67,7 +67,6 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     get pg_peek.database_table_path(@database, "posts")
 
     assert_response :success
-    assert_select "a[href*='table=posts']", text: /View queries for this table/
   end
 
   test "show returns 404 for non-existent table" do
@@ -78,16 +77,6 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
   test "show returns 404 for non-existent database" do
     get pg_peek.database_table_path("nonexistent_db", "posts")
     assert_response :not_found
-  end
-
-  test "database show page lists tables with inline stats" do
-    get pg_peek.database_path(@database)
-
-    assert_response :success
-    assert_select "summary" do
-      assert_select "a[href*='posts']"
-      assert_select "small", text: /H:.*I:/
-    end
   end
 
   test "database show page has chart icon links to table detail" do

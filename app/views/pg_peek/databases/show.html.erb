@@ -172,14 +172,15 @@ version: <%= @database.version %>
     <% stats = @table_stats[table_name] || {} %>
     <details data-search-filter-target="item" data-table-name="<%= table_name.downcase %>" hidden>
       <summary data-search-filter-target="summary">
-        <%= link_to table_name, database_table_path(@database, table_name) %>
-        <%= link_to chart_icon_svg, database_table_path(@database, table_name), title: "View table stats", style: "margin-left: 8px;" %>
+        <%= table_name %>
         <small style="margin-left: 16px; color: var(--muted-color);">
           <%= format_inline_cache_stats(stats[:heap_hit_ratio], stats[:index_hit_ratio]) %>
         </small>
       </summary>
-      <p>...</p>
     </details>
+
+    <%= link_to table_name, database_table_path(@database, table_name) %>
+    <%= link_to chart_icon_svg, database_table_path(@database, table_name), title: "View table stats", style: "margin-left: 8px;" %>
   <% end %>
 
   <p data-search-filter-target="empty" hidden>No tables found</p>
