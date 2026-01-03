@@ -3,13 +3,13 @@
     "allow": [
       "Bash(tree:*)",
       "Bash(cat:*)",
-      "Bash(git -C /Users/tomasz/code/tiramizoo/pg_peek show HEAD:README.md)",
       "Bash(bundle exec rake:*)",
       "Bash(bundle exec rails s:*)",
       "Bash(bundle exec ruby:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(bundle lock:*)"
+      "Bash(bundle lock:*)",
+      "Bash(bin/rubocop:*)"
     ]
   }
 }

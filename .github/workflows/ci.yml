@@ -48,9 +48,8 @@ jobs:
       postgres:
         image: postgres:${{ matrix.postgres }}-alpine
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: pg_peek_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: runner
         ports:
           - 5432:5432
         options: >-
@@ -61,10 +60,6 @@ jobs:
 
     env:
       RAILS_ENV: test
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
 
     steps:
       - name: Checkout code
@@ -79,15 +74,7 @@ jobs:
       - name: Setup database
         run: |
           cd test/dummy
-          bundle exec rails db:create db:migrate
+          bundle exec rails db:test:prepare
 
       - name: Run tests
-        run: bundle exec rake test
-
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: screenshots-pg${{ matrix.postgres }}
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+        run: bundle exec rails test -d

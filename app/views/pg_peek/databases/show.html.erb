@@ -169,10 +169,18 @@ version: <%= @database.version %>
   <p data-search-filter-target="count">0 tables found</p>
 
   <% @database.tables.each do |table_name| %>
+    <% stats = @table_stats[table_name] || {} %>
     <details data-search-filter-target="item" data-table-name="<%= table_name.downcase %>" hidden>
-      <summary data-search-filter-target="summary"><%= table_name %></summary>
-      <p>...</p>
+      <summary data-search-filter-target="summary">
+        <%= table_name %>
+        <small style="margin-left: 16px; color: var(--muted-color);">
+          <%= format_inline_cache_stats(stats[:heap_hit_ratio], stats[:index_hit_ratio]) %>
+        </small>
+      </summary>
     </details>
+
+    <%= link_to table_name, database_table_path(@database, table_name) %>
+    <%= link_to chart_icon_svg, database_table_path(@database, table_name), title: "View table stats", style: "margin-left: 8px;" %>
   <% end %>
 
   <p data-search-filter-target="empty" hidden>No tables found</p>
