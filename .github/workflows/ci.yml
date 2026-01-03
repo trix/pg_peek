@@ -48,9 +48,8 @@ jobs:
       postgres:
         image: postgres:${{ matrix.postgres }}-alpine
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: pg_peek_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: runner
         ports:
           - 5432:5432
         options: >-
@@ -61,7 +60,6 @@ jobs:
 
     env:
       RAILS_ENV: test
-      POSTGRES_PORT: 5432
 
     steps:
       - name: Checkout code
