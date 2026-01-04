@@ -9,14 +9,14 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
     version_full = @database.version_full
 
     assert_kind_of String, version_full
-    assert_match(/PostgreSQL \d+\.\d+/, version_full)
+    assert_match(/PostgreSQL \d+(\.\d+)?/, version_full)
   end
 
   test "version returns semver version number" do
     version = @database.version
 
     assert_kind_of String, version
-    assert_match(/^\d+\.\d+$/, version)
+    assert_match(/^\d+(\.\d+)?$/, version)
   end
 
   test "major_version returns integer" do

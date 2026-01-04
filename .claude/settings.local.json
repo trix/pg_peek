@@ -11,7 +11,10 @@
       "Bash(bundle lock:*)",
       "Bash(bin/rubocop:*)",
       "Bash(rake test:*)",
-      "Bash(ruby:*)"
+      "Bash(ruby:*)",
+      "Bash(chmod:*)",
+      "Bash(bin/test-pg18:*)",
+      "Bash(bin/test:*)"
     ]
   }
 }
