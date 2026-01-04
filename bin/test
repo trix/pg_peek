@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for version in 14 15 16 17 18; do
+  echo ""
+  echo "========================================"
+  echo "  Running tests on PostgreSQL $version"
+  echo "========================================"
+  echo ""
+  bin/test-pg$version "$@"
+done
+
+echo ""
+echo "========================================"
+echo "  All tests passed!"
+echo "========================================"
