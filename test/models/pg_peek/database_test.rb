@@ -32,4 +32,23 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
 
     assert_equal version.split(".").first.to_i, major_version
   end
+
+  test "installed_extensions returns array of extensions" do
+    extensions = @database.installed_extensions
+
+    assert_kind_of Array, extensions
+    assert extensions.any?, "Expected at least one installed extension"
+
+    extension = extensions.first
+    assert extension.key?("name"), "Expected extension to have 'name' key"
+    assert extension.key?("default_version"), "Expected extension to have 'default_version' key"
+    assert extension.key?("installed_version"), "Expected extension to have 'installed_version' key"
+  end
+
+  test "installed_extensions includes plpgsql" do
+    extensions = @database.installed_extensions
+    extension_names = extensions.map { |e| e["name"] }
+
+    assert_includes extension_names, "plpgsql"
+  end
 end
