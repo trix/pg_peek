@@ -117,33 +117,34 @@
   application.register("search-filter", SearchFilterController)
 </script>
 
-<h1>Database Details</h1>
+<details>
+  <summary>Database Details</summary>
+  <pre>
+  name: <%= @database.name %>
+  primary: <%= @database.primary %>
+  replica: <%= @database.replica %>
+  schema_format: <%= @database.schema_format %>
 
-<pre>
-name: <%= @database.name %>
-primary: <%= @database.primary %>
-replica: <%= @database.replica %>
-schema_format: <%= @database.schema_format %>
+  version: <%= @database.version %>
+  </pre>
+</details>
 
-version: <%= @database.version %>
-</pre>
-
-<pre>
-<% @database.installed_extensions.each do |extension| %>
-<%= extension['name'] %> <b><%= extension['installed_version'] %></b>
-<% end %>
-</pre>
+<details>
+  <summary>Installed Extensions</summary>
+  <pre>
+  <% @database.installed_extensions.each do |extension| %>
+  <%= extension['name'] %> <b><%= extension['installed_version'] %></b>
+  <% end %>
+  </pre>
+</details>
 
 <% if @pg_stat_statements.installed? %>
   <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
 <% elsif @pg_stat_statements.available? %>
   <article aria-label="Extension pg_stat_statements is not enabled">
     <header>pg_stat_statements extension is not enabled</header>
-    <p>To enable query performance monitoring, run the following SQL:</p>
-    <pre><code>CREATE EXTENSION pg_stat_statements;</code></pre>
-    <footer>
-      <small>Note: You may need superuser privileges to create extensions.</small>
-    </footer>
+    <p>To enable query performance monitoring, run:</p>
+    <pre><code>bin/rails generate pg_peek:pg_stat_statements</code></pre>
   </article>
 <% else %>
   <article aria-label="Extension pg_stat_statements is not available">
