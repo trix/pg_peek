@@ -36,7 +36,8 @@ Visit `/pg_peek` in your application to access the dashboard.
 ### Requirements
 
 - Rails 8.1+
-- PostgreSQL with `pg_stat_statements` extension (for query analysis features)
+- PostgreSQL 14+ with `pg_stat_statements` extension (for query analysis features)
+- Only officially supported PostgreSQL versions are supported
 
 ## Development
 
