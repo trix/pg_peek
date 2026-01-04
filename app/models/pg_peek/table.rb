@@ -38,11 +38,6 @@ class PgPeek::Table
 
   STATS_RESET_QUERY = "SELECT stats_reset FROM pg_stat_bgwriter".freeze
 
-  def self.find(database, name)
-    table = new(database, name)
-    table.exists? ? table : nil
-  end
-
   def self.inline_stats_for(database, table_names)
     return {} if table_names.empty?
 
@@ -96,10 +91,6 @@ class PgPeek::Table
   def initialize(database, name)
     @database = database
     @name = name
-  end
-
-  def exists?
-    database.connection.tables.include?(name)
   end
 
   def stats

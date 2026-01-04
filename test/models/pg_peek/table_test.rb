@@ -6,26 +6,6 @@ class PgPeek::TableTest < ActiveSupport::TestCase
     @table = PgPeek::Table.new(@database, "posts")
   end
 
-  test "exists? returns true for existing table" do
-    assert @table.exists?
-  end
-
-  test "exists? returns false for non-existing table" do
-    table = PgPeek::Table.new(@database, "nonexistent_table")
-    assert_not table.exists?
-  end
-
-  test "find returns table when it exists" do
-    table = PgPeek::Table.find(@database, "posts")
-    assert_not_nil table
-    assert_equal "posts", table.name
-  end
-
-  test "find returns nil when table does not exist" do
-    table = PgPeek::Table.find(@database, "nonexistent_table")
-    assert_nil table
-  end
-
   test "stats returns hash with all expected keys" do
     stats = @table.stats
 

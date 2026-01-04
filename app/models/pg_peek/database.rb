@@ -9,7 +9,7 @@ class PgPeek::Database
 
   def self.all
     available_postgres_databases.map do |db_config|
-      db = PgPeek::Database.new(
+      PgPeek::Database.new(
         name: db_config.name,
         primary: db_config.primary?,
         replica: db_config.replica?,
@@ -56,5 +56,14 @@ class PgPeek::Database
 
   def tables
     connection.tables.sort - %w[schema_migrations ar_internal_metadata]
+  end
+
+  def table_exists?(table_name)
+    connection.tables.include?(table_name)
+  end
+
+  def find_table(name)
+    return nil unless table_exists?(name)
+    PgPeek::Table.new(self, name)
   end
 end
