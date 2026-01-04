@@ -1,6 +1,6 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-  <h1 style="margin: 0;">Statements</h1>
-  <%= button_to "Reset pg_stat_statements",
+  <h1 style="margin: 0;">pg_stat_statements</h1>
+  <%= button_to "Reset",
                 reset_database_pg_stat_statements_path("primary"),
                 method: :delete,
                 data: {
@@ -16,17 +16,19 @@
   </div>
 <% end %>
 
-<pre>
-query_log_tags_enabled:               <%= @query_log_tags_enabled %>
-query_log_tags_format:                <%= @query_log_tags_format %>
-query_log_tags:                       <%= @query_log_tags %>
-query_log_tags_prepend_comment:       <%= @query_log_tags_prepend_comment %>
+<details>
+  <summary>Rails Environment</summary>
+  <pre>
+  query_log_tags_enabled:               <%= @query_log_tags_enabled %>
+  query_log_tags_format:                <%= @query_log_tags_format %>
+  query_log_tags:                       <%= @query_log_tags %>
+  query_log_tags_prepend_comment:       <%= @query_log_tags_prepend_comment %>
 
-pg_stat_statements_reset_at:          <%= @pg_stat_statements.reset_at %>
-pg_stat_statements_installed_version: <%= @pg_stat_statements.installed_version %>
-pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
-</pre>
-
+  pg_stat_statements_reset_at:          <%= @pg_stat_statements.reset_at %>
+  pg_stat_statements_installed_version: <%= @pg_stat_statements.installed_version %>
+  pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
+  </pre>
+</details>
 
 <h1>Outliers</h1>
 
