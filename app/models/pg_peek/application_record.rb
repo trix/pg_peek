@@ -1,5 +1,3 @@
-module PgPeek
-  class ApplicationRecord < ActiveRecord::Base
-    self.abstract_class = true
-  end
+class PgPeek::ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
 end

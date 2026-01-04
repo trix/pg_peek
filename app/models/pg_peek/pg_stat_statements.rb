@@ -1,5 +1,3 @@
-# https://gist.github.com/defkode/63ac230e4175f7c46db92e6fad0a1d09
-
 class PgPeek::PgStatStatements
   attr_reader :connection, :default_version, :installed_version
 

@@ -1,5 +1,3 @@
-module PgPeek
-  class ApplicationController < ActionController::Base
-    layout "pg_peek/application"
-  end
+class PgPeek::ApplicationController < ActionController::Base
+  layout "pg_peek/application"
 end
