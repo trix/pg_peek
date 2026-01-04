@@ -50,6 +50,7 @@ jobs:
         env:
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_USER: runner
+          POSTGRES_PORT: 5432
         ports:
           - 5432:5432
         options: >-
