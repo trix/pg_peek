@@ -59,7 +59,7 @@ class PgPeek::Database
   end
 
   def tables
-    connection.tables.sort - %w[schema_migrations ar_internal_metadata]
+    connection.tables.sort - PgPeek.config.excluded_tables
   end
 
   def table_exists?(table_name)

@@ -51,4 +51,26 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
 
     assert_includes extension_names, "plpgsql"
   end
+
+  test "tables returns sorted array of table names" do
+    tables = @database.tables
+
+    assert_kind_of Array, tables
+    assert_equal tables, tables.sort
+  end
+
+  test "tables excludes configured tables" do
+    tables = @database.tables
+
+    PgPeek.config.excluded_tables.each do |excluded|
+      assert_not_includes tables, excluded
+    end
+  end
+
+  test "tables excludes schema_migrations and ar_internal_metadata by default" do
+    tables = @database.tables
+
+    assert_not_includes tables, "schema_migrations"
+    assert_not_includes tables, "ar_internal_metadata"
+  end
 end
