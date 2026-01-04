@@ -3,7 +3,7 @@ require "test_helper"
 class PgStatStatementsVisibilityTest < ActionDispatch::IntegrationTest
   setup do
     @database = PgPeek::Database.find("primary")
-    @pg_stat_statements = PgPeek::PgStatStatements.new(connection: @database.connection)
+    @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
   end
 
   test "shows warning with SQL when pg_stat_statements is available but not installed" do

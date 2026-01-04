@@ -1,5 +1,6 @@
 require "pg_peek/version"
 require "pg_peek/configuration"
+require "pg_peek/query_loader"
 require "pg_peek/engine"
 
 module PgPeek

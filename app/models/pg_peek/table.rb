@@ -1,58 +1,14 @@
 class PgPeek::Table
   attr_reader :database, :name
 
-  STATS_QUERY = <<~SQL.freeze
-    SELECT
-      t.relname AS table_name,
-      t.seq_scan,
-      t.seq_tup_read,
-      t.idx_scan,
-      t.idx_tup_fetch,
-      t.n_tup_ins,
-      t.n_tup_upd,
-      t.n_tup_del,
-      t.n_live_tup,
-      t.n_dead_tup,
-      t.last_vacuum,
-      t.last_autovacuum,
-      t.last_analyze,
-      t.last_autoanalyze,
-      t.vacuum_count,
-      t.autovacuum_count,
-      t.analyze_count,
-      t.autoanalyze_count,
-      s.heap_blks_read,
-      s.heap_blks_hit,
-      s.idx_blks_read,
-      s.idx_blks_hit,
-      s.toast_blks_read,
-      s.toast_blks_hit,
-      s.tidx_blks_read,
-      s.tidx_blks_hit,
-      c.reltuples AS row_estimate
-    FROM pg_stat_user_tables t
-    LEFT JOIN pg_statio_user_tables s ON t.relid = s.relid
-    LEFT JOIN pg_class c ON t.relid = c.oid
-    WHERE t.relname = $1
-  SQL
-
   STATS_RESET_QUERY = "SELECT stats_reset FROM pg_stat_bgwriter".freeze
 
   def self.inline_stats_for(database, table_names)
     return {} if table_names.empty?
 
-    placeholders = table_names.map.with_index { |_, i| "$#{i + 1}" }.join(", ")
-    query = <<~SQL
-      SELECT
-        t.relname AS table_name,
-        s.heap_blks_read,
-        s.heap_blks_hit,
-        s.idx_blks_read,
-        s.idx_blks_hit
-      FROM pg_stat_user_tables t
-      LEFT JOIN pg_statio_user_tables s ON t.relid = s.relid
-      WHERE t.relname IN (#{placeholders})
-    SQL
+    query = PgPeek::QueryLoader.load("tables/inline_stats",
+                                      pg_version: database.major_version,
+                                      count: table_names.size)
 
     result = database.connection.exec_query(query, "PgPeek::Table InlineStats", table_names)
     result.rows.each_with_object({}) do |row, hash|
@@ -271,7 +227,8 @@ class PgPeek::Table
   private
 
   def fetch_stats
-    result = database.connection.exec_query(STATS_QUERY, "PgPeek::Table Stats", [ name ])
+    query = PgPeek::QueryLoader.load("tables/stats", pg_version: database.major_version)
+    result = database.connection.exec_query(query, "PgPeek::Table Stats", [ name ])
     result.first || empty_stats
   end
 

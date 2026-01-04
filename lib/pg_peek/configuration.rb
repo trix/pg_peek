@@ -3,15 +3,17 @@ module PgPeek
     VALID_STATS_PROVIDERS = %i[pg_stat_statements pg_stat_monitor].freeze
     DEFAULT_EXCLUDED_TABLES = %w[schema_migrations ar_internal_metadata].freeze
     DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD = 10 # percentage
+    DEFAULT_OUTLIERS_LIMIT = 20
 
     attr_reader :stats_provider
-    attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold
+    attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit
 
     def initialize
       @stats_provider = :pg_stat_statements
       @connections = {}
       @excluded_tables = DEFAULT_EXCLUDED_TABLES.dup
       @dead_tuple_warning_threshold = DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD
+      @outliers_limit = DEFAULT_OUTLIERS_LIMIT
     end
 
     def stats_provider=(value)

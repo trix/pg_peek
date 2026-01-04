@@ -50,6 +50,10 @@ class PgPeek::Database
     @version ||= version_full.match(/PostgreSQL ([\d.]+)/)[1]
   end
 
+  def major_version
+    @major_version ||= version.split(".").first.to_i
+  end
+
   def installed_extensions
     connection.execute("SELECT name, default_version, installed_version FROM pg_available_extensions WHERE installed_version IS NOT NULL ORDER BY name").to_a
   end

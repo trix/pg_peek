@@ -20,7 +20,7 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
     end
 
     @database = PgPeek::Database.find(params[:database_id])
-    @pg_stat_statements = PgPeek::PgStatStatements.new(connection: @database.connection)
+    @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
 
     # Group routes by controller and list unique actions per controller
     routes = Rails.application.routes.routes
@@ -48,7 +48,7 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
 
   def reset
     @database = PgPeek::Database.find(params[:database_id])
-    PgPeek::PgStatStatements.new(connection: @database.connection).reset!
+    PgPeek::PgStatStatements.new(database: @database).reset!
 
     redirect_to root_database_pg_stat_statements_path(@database), notice: "pg_stat_statements has been reset successfully."
   end
