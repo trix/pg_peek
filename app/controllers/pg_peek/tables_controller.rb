@@ -1,11 +1,8 @@
-module PgPeek
-  class TablesController < ApplicationController
-    def show
-      @database = Database.find(params[:database_id])
-      raise ActiveRecord::RecordNotFound, "Database not found" unless @database
+class PgPeek::TablesController < ApplicationController
+  def show
+    @database = PgPeekDatabase.find(params[:database_id]) or raise ActiveRecord::RecordNotFound, "Database not found"
 
-      @table = Table.new(@database, params[:name])
-      raise ActiveRecord::RecordNotFound, "Table '#{params[:name]}' not found" unless @table.exists?
-    end
+    @table = PgPeek::Table.new(@database, params[:name])
+    raise ActiveRecord::RecordNotFound, "Table '#{params[:name]}' not found" unless @table.exists?
   end
 end
