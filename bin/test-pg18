@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+POSTGRES_PORT=5444 bin/rails test "$@"
