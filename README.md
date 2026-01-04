@@ -56,8 +56,8 @@ bundle install
 docker compose up postgres18 -d
 
 # Setup the dummy app database
-cd test/dummy
-rails db:prepare
+bin/rails db:setup
+bin/rails s 
 
 # Start the development server
 rails s
@@ -68,18 +68,30 @@ rails s
 ### Testing Against Other PostgreSQL Versions
 
 ```bash
+# Run databases
+docker compose up -d
+
+# PostgreSQL 14
+bin/test-pg14
+
+# PostgreSQL 15
+bin/test-pg15
+
 # PostgreSQL 16
-POSTGRES_PORT=5432 rails db:create db:migrate
+bin/test-pg16
 
 # PostgreSQL 17
-POSTGRES_PORT=5433 rails db:create db:migrate
+bin/test-pg17
+
+# PostgreSQL 18
+bin/test-pg18
 ```
 
 ## Testing
 
 ```bash
 # Run the full test suite
-bin/rails test
+bin/test
 
 # Code style check
 bin/rubocop
