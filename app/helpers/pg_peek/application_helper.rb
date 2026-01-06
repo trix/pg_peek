@@ -103,6 +103,19 @@ module PgPeek::ApplicationHelper
     "█" * filled + "░" * (5 - filled)
   end
 
+  # Format duration from milliseconds as HH:MM:SS.mmm (e.g., 54:02:01.001)
+  def format_duration_from_ms(total_ms)
+    return "00:00:00.000" if total_ms.nil? || total_ms.zero?
+
+    total_seconds = total_ms / 1000.0
+    hours = (total_seconds / 3600).to_i
+    minutes = ((total_seconds % 3600) / 60).to_i
+    seconds = (total_seconds % 60).to_i
+    milliseconds = (total_ms % 1000).round
+
+    format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+  end
+
   # Format duration as HH:MM:SS.mmm (e.g., 54:02:01.001)
   def format_duration(interval_string)
     return "00:00:00.000" if interval_string.blank?

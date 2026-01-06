@@ -13,6 +13,10 @@ development:
     <<: *default
     database: pg_peek_queue_development
     migrations_paths: db/queue_migrate
+  analytics:
+    <<: *default
+    database: pg_peek_analytics_development
+    migrations_paths: db/analytics_migrate
 
 test:
   primary:
@@ -22,3 +26,7 @@ test:
     <<: *default
     database: pg_peek_queue_test
     migrations_paths: db/queue_migrate
+  analytics:
+    <<: *default
+    database: pg_peek_analytics_test
+    migrations_paths: db/analytics_migrate

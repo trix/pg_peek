@@ -73,6 +73,31 @@ class PgPeek::PgStatStatements
     result.to_a
   end
 
+  def jobs
+    return unless installed?
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/jobs",
+                                      pg_version: database.major_version)
+    result = connection.execute(query)
+    result.to_a
+  end
+
+  def outliers_by_job(job_class)
+    return unless installed?
+
+    # Build pattern to match job='JobClassName' in SQLcommenter
+    # Need to escape for SQL LIKE and quote properly
+    escaped_job = job_class.gsub("'", "''")
+    pattern = "%job='#{escaped_job}'%"
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/outliers_by_job",
+                                      pg_version: database.major_version,
+                                      job_pattern: connection.quote(pattern),
+                                      limit: PgPeek.config.outliers_limit)
+    result = connection.execute(query)
+    result.to_a
+  end
+
   private
 
   def verify_installation

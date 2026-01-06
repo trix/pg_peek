@@ -1,4 +1,6 @@
 PgPeek::Engine.routes.draw do
+  resources :jobs, only: [ :index, :show ], param: :job_class
+
   resources :databases, only: [ :index, :show ] do
     resources :tables, only: [ :show ], param: :name
 
