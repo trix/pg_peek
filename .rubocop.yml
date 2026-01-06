@@ -4,7 +4,7 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 AllCops:
   Exclude:
     - test/dummy/db/schema.rb
-
+    - test/dummy/db/queue_schema.rb
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
