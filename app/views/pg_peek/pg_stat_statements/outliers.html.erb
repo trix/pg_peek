@@ -42,35 +42,37 @@
 <% end %>
 
 <% if @outliers.present? %>
+  <% max_calls = @outliers.map { |o| o["ncalls"].to_s.gsub(/[^0-9]/, "").to_i }.max %>
   <table>
     <thead>
       <tr>
-        <th width="30">Execution Time</th>
+        <th style="width: 50px; text-align: center;" title="Call intensity">Calls</th>
+        <th style="width: 100px;">Time</th>
         <th>Query</th>
-        <th>Comment</th>
-        <th>Calls</th>
+        <th style="width: 40px; text-align: center;" title="SQLcommenter metadata"></th>
       </tr>
     </thead>
     <tbody>
       <% @outliers.each do |outlier| %>
+        <% comment = extract_comment(outlier["query"]) %>
+        <% calls_num = outlier["ncalls"].to_s.gsub(/[^0-9]/, "").to_i %>
         <tr>
-          <td>
-            <%= ActiveSupport::Duration.parse(outlier["total_exec_time"]).to_s %>
+          <td style="vertical-align: top; white-space: nowrap; font-family: monospace; letter-spacing: -2px;" title="<%= outlier["ncalls"] %> calls">
+            <%= intensity_bar(calls_num, max_calls) %>
           </td>
-          <td>
-            <pre>
-              <%= strip_sqlcommenter(outlier["query"]).squish %>
-            </pre>
+          <td style="vertical-align: top; font-size: 13px; white-space: nowrap;">
+            <strong><%= format_duration(outlier["total_exec_time"]) %></strong><br>
+            <span style="color: var(--pico-muted-color, #666);"><%= outlier["prop_exec_time"] %></span><br>
+            <span style="color: var(--pico-muted-color, #666); font-size: 11px;">avg: <%= outlier["avg_exec_ms"] %>ms</span>
           </td>
-          <td>
-            <% if (comment = extract_comment(outlier["query"])) %>
-              <% sqlcommenter_to_hash(comment).each do |key, value| %>
-                <%= key %>: <%= value %><br>
-              <% end %>
+          <td style="vertical-align: top;">
+            <code style="font-size: 12px; word-break: break-all; white-space: pre-wrap;"><%= strip_sqlcommenter(outlier["query"]).squish %></code>
+          </td>
+          <td style="text-align: center; vertical-align: top;">
+            <% if comment %>
+              <% comment_text = sqlcommenter_to_hash(comment).map { |k, v| "#{k}: #{CGI.unescape(v.to_s.gsub(/^'|'$/, ''))}" }.join("\n") %>
+              <span title="<%= comment_text %>" style="cursor: help;">💬</span>
             <% end %>
-          </td>
-          <td>
-            <%= outlier["ncalls"] %>
           </td>
         </tr>
       <% end %>

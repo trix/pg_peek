@@ -10,26 +10,36 @@ pg_peek is a Rails Engine (gem) that provides a web UI for monitoring and analyz
 - **Database:** PostgreSQL (uses pg_stat_statements extension)
 - **Assets:** Pico CSS (classless CSS framework), Propshaft pipeline
 
-## Common Commands
+### Testing Against Other PostgreSQL Versions
 
 ```bash
-# Install dependencies
-bundle install
+# Run databases
+docker compose up -d
 
-# Run tests (uses dummy Rails app with SQLite)
-rake test
+# PostgreSQL 14
+bin/test-pg14
 
-# Run specific test file
-ruby -Itest test/models/pg_peek/database_test.rb
+# PostgreSQL 15
+bin/test-pg15
 
-# Start development server (dummy app)
-cd test/dummy && rails s -p 3000
+# PostgreSQL 16
+bin/test-pg16
+
+# PostgreSQL 17
+bin/test-pg17
+
+# PostgreSQL 18
+bin/test-pg18
+```
+
+## Testing
+
+```bash
+# Run the full test suite
+bin/test
 
 # Code style check
 bin/rubocop
-
-# Auto-fix style issues
-bin/rubocop -A
 ```
 
 ## Architecture
@@ -56,13 +66,19 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 - `extract_comment(sql)` - Extracts key=value pairs from comments
 - `sqlcommenter_to_hash(comment)` - Parses SQLcommenter format
 
+### URL structure
+
+everything is database prefixed, `/pg_peek/databases/:database_id`
+prefer GET requests (shareable links), so it easy to share links to specific databases with team members
+
 ### Routes
 
 Routes are defined in `config/routes.rb` with databases as the primary resource and nested resources for tables and pg_stat_statements views.
 
 ## Testing
 
-Tests use a dummy Rails app located in `test/dummy/` with SQLite3 (not PostgreSQL). The dummy app mounts the engine at `/pg_peek`.
+Tests use a dummy Rails app located in `test/dummy/` with PostgreSQL. The dummy app mounts the engine at `/pg_peek`.
+Uses Minitest and database fixtures. 
 
 ## Development Notes
 

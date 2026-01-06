@@ -92,6 +92,37 @@ module PgPeek::ApplicationHelper
     "H: #{heap_display} I: #{index_display}"
   end
 
+  # Horizontal bar meter for call intensity visualization
+  # Returns a 5-segment bar: ██░░░ (low) → █████ (high)
+  def intensity_bar(value, max_value)
+    return "░░░░░" if max_value.nil? || max_value.zero? || value.nil?
+
+    ratio = value.to_f / max_value
+    filled = (ratio * 5).ceil.clamp(1, 5)
+
+    "█" * filled + "░" * (5 - filled)
+  end
+
+  # Format duration as HH:MM:SS.mmm (e.g., 54:02:01.001)
+  def format_duration(interval_string)
+    return "00:00:00.000" if interval_string.blank?
+
+    duration = ActiveSupport::Duration.parse(interval_string)
+    total_seconds = duration.to_f
+
+    hours = (total_seconds / 3600).to_i
+    minutes = ((total_seconds % 3600) / 60).to_i
+    seconds = (total_seconds % 60).to_i
+    milliseconds = ((total_seconds % 1) * 1000).round
+
+    format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+  end
+
+  # Comment icon SVG for SQLcommenter tooltip
+  def comment_icon_svg
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14" fill="currentColor" style="vertical-align: middle;"><path d="M123.6 391.3c12.9-9.4 29.6-11.8 44.6-6.4c26.5 9.6 56.2 15.1 87.8 15.1c124.7 0 208-80.5 208-160S380.7 80 256 80S48 160.5 48 240c0 32 12.4 62.8 35.7 89.2c8.6 9.7 12.8 22.5 11.8 35.5c-1.4 18.1-5.7 34.7-11.3 49.4c17-7.9 31.1-16.7 39.4-22.7zM256 512c-38.4 0-75.1-5.5-109.8-15.7c-10.2 6.9-25.2 15.8-43.5 24.2C76.5 531.7 46.4 540.6 16 542c-4.9 .2-9.4-2.8-11-7.4s.1-9.8 4-12.5c16-11.3 28-26.8 35.3-45.2c1.5-3.8 2.8-7.7 4-11.6C16.8 428.8 0 386.3 0 340c0-106 94.8-192 212-192c8.5 0 16.8 .4 25 1.2C266.1 53.5 347.5 0 442 0C529.3 0 600 57.2 600 128c0 32.6-14.3 62.5-38.5 85.8c3.9 10.4 6.5 21.5 6.5 33.2c0 106-94.8 192-212 192c-57.2 0-109.4-17.8-148.3-47.3C182.1 403.8 155.4 412 128 412c-17.6 0-34.7-2.3-50.8-6.6c14.4 36.9 47.9 69.3 96.5 88.5C194.5 506.2 224.5 512 256 512z"/></svg>'.html_safe
+  end
+
   # Chart icon SVG for table stats link
   def chart_icon_svg
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor" style="vertical-align: middle;"><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64L0 400c0 44.2 35.8 80 80 80l400 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 416c-8.8 0-16-7.2-16-16L64 64zm406.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L320 210.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L240 221.3l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0l128-128z"/></svg>'.html_safe
