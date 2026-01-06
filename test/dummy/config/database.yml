@@ -6,9 +6,19 @@ default: &default
   port: <%= ENV.fetch("POSTGRES_PORT", 5444) %>
 
 development:
-  <<: *default
-  database: pg_peek_development
+  primary:
+    <<: *default
+    database: pg_peek_development
+  queue:
+    <<: *default
+    database: pg_peek_queue_development
+    migrations_paths: db/queue_migrate
 
 test:
-  <<: *default
-  database: pg_peek_test
+  primary:
+    <<: *default
+    database: pg_peek_test
+  queue:
+    <<: *default
+    database: pg_peek_queue_test
+    migrations_paths: db/queue_migrate

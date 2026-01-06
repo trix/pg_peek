@@ -6,6 +6,7 @@ gemspec
 gem "puma"
 gem "pg"
 gem "propshaft"
+gem "solid_queue"
 
 # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
 gem "rubocop-rails-omakase", require: false
