@@ -33,6 +33,24 @@ mount PgPeek::Engine, at: "/pg_peek"
 
 Visit `/pg_peek` in your application to access the dashboard.
 
+### Enabling pg_stat_statements
+
+To enable query performance monitoring, run the generator to create a migration:
+
+```bash
+# For primary database
+bin/rails generate pg_peek:pg_stat_statements
+
+# For a secondary database (e.g., "analytics")
+bin/rails generate pg_peek:pg_stat_statements --db analytics
+```
+
+Then run the migration:
+
+```bash
+bin/rails db:migrate
+```
+
 ### Requirements
 
 - Rails 8.1+
