@@ -1,6 +1,10 @@
 class PgPeek::ApplicationController < ActionController::Base
   layout "pg_peek/application"
 
+  # Host applications may set include_all_helpers = false, which limits a
+  # controller to its own matching helper.
+  helper PgPeek::ApplicationHelper, PgPeek::ReportHelper
+
   before_action :authenticate
 
   private

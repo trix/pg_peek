@@ -16,11 +16,7 @@
     <main>
       <nav>
         <ul>
-          <li>
-            <%= link_to root_path do %>
-              <%= image_tag("pg_peek/logo.png", alt: "pg_peek", size: "28x28") %>
-            <% end %>
-          </li>
+          <li><%= link_to "pg_peek", root_path, class: "wordmark" %></li>
         </ul>
         <ul>
           <li><%= link_to "databases", databases_path %></li>

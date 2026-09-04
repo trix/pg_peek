@@ -2,8 +2,6 @@
 
 A Rails Engine that provides a web UI for monitoring and analyzing PostgreSQL query performance. Mount it into your Rails application for easy database introspection and slow query analysis.
 
-![PgPeek Logo](app/assets/images/pg_peek/logo.png)
-
 ## Features
 
 - **Database Overview**: View PostgreSQL version, installed extensions, and table listings

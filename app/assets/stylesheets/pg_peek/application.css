@@ -84,7 +84,7 @@ nav ul {
 }
 
 nav ul:last-of-type { margin-left: auto; }
-nav img { display: block; width: 28px; height: 28px; }
+nav .wordmark { color: var(--fg); font-weight: 600; }
 
 nav a {
   color: var(--dim);
