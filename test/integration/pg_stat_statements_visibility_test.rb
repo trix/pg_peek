@@ -19,7 +19,7 @@ class PgStatStatementsVisibilityTest < ActionDispatch::IntegrationTest
       assert_select "header", text: "pg_stat_statements extension is not enabled"
       assert_select "code", text: /enable_extension "pg_stat_statements"/
     end
-    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", count: 0
+    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", text: "pg_stat_statements", count: 0
   end
 
   test "shows link to pg_stat_statements when extension is installed and preloaded" do

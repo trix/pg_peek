@@ -11,16 +11,16 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
   test "index renders when the extension is usable" do
     skip_unless_usable(@pg_stat_statements)
 
-    get pg_peek.jobs_path
+    get pg_peek.database_jobs_path(@database)
 
     assert_response :success
-    assert_select "h1", text: "ActiveJob Dashboard"
+    assert_select "h1", text: "jobs"
     assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']", count: 0
   end
 
   test "index renders preload instructions when the module is not preloaded" do
     PgPeek::PgStatStatements.stub(:new, not_preloaded_stat_statements) do
-      get pg_peek.jobs_path
+      get pg_peek.database_jobs_path(@database)
     end
 
     assert_response :success
@@ -29,7 +29,7 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
 
   test "index does not also blame missing jobs when the module is not preloaded" do
     PgPeek::PgStatStatements.stub(:new, not_preloaded_stat_statements) do
-      get pg_peek.jobs_path
+      get pg_peek.database_jobs_path(@database)
     end
 
     # Showing "no jobs found" alongside the preload instructions points at the
@@ -41,7 +41,7 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
     skip_unless_usable(@pg_stat_statements)
 
     with_query_log_tags [ :application, :controller, :action ] do
-      get pg_peek.jobs_path
+      get pg_peek.database_jobs_path(@database)
     end
 
     assert_response :success
@@ -52,7 +52,7 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
   test "index blames the statistics reset when the job tag is configured" do
     skip_unless_usable(@pg_stat_statements)
 
-    get pg_peek.jobs_path
+    get pg_peek.database_jobs_path(@database)
 
     assert_response :success
     assert_select "article[aria-label='No jobs have run yet']"
@@ -61,7 +61,7 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
 
   test "show renders preload instructions when the module is not preloaded" do
     PgPeek::PgStatStatements.stub(:new, not_preloaded_stat_statements) do
-      get pg_peek.job_path("PostPublishJob")
+      get pg_peek.database_job_path(@database, "PostPublishJob")
     end
 
     assert_response :success

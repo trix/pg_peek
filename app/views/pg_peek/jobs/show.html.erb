@@ -1,69 +1,17 @@
 <div class="toolbar">
   <h1><%= @job_class %></h1>
-  <%= link_to "← jobs", jobs_path %>
+  <%= link_to "← jobs", database_jobs_path(@database) %>
 </div>
 
-<% @not_preloaded.each do |database, pg_stat| %>
-  <%= render "pg_peek/pg_stat_statements/preload_instructions",
-             database: database,
-             pg_stat_statements: pg_stat %>
-<% end %>
-
-<% if @outliers_by_db.empty? %>
-  <% if @not_preloaded.empty? %>
-    <article aria-label="No queries found">
-      <header>No queries found for this job</header>
-      <p>This could mean:</p>
-      <ul>
-        <li>The job hasn't executed any database queries recently</li>
-        <li>pg_stat_statements statistics have been reset</li>
-        <li>The job queries are not in the top outliers</li>
-      </ul>
-    </article>
-  <% end %>
+<% if @report.empty? %>
+  <article aria-label="No queries found">
+    <header>No queries found for this job</header>
+    <p>This could mean:</p>
+    <ul>
+      <li>The job hasn't executed any database queries since statistics were last reset</li>
+      <li>The job's queries are not among the top outliers</li>
+    </ul>
+  </article>
 <% else %>
-  <% all_outliers = @outliers_by_db.flat_map { |db, outliers| outliers.map { |o| o.merge("database" => db) } } %>
-  <% max_calls = all_outliers.map { |o| o["ncalls"].to_s.gsub(/[^0-9]/, "").to_i }.max %>
-
-  <table>
-    <thead>
-      <tr>
-        <th title="Call intensity">calls</th>
-        <th>time</th>
-        <% if @outliers_by_db.size > 1 %>
-          <th>database</th>
-        <% end %>
-        <th>query</th>
-        <th title="SQLcommenter metadata"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% all_outliers.each do |outlier| %>
-        <% comment = extract_comment(outlier["query"]) %>
-        <% calls_num = outlier["ncalls"].to_s.gsub(/[^0-9]/, "").to_i %>
-        <tr>
-          <td class="intensity" title="<%= outlier["ncalls"] %> calls">
-            <%= intensity_bar(calls_num, max_calls) %>
-          </td>
-          <td class="nowrap stack">
-            <div><strong><%= format_duration(outlier["total_exec_time"]) %></strong></div>
-            <div class="dim"><%= outlier["prop_exec_time"] %></div>
-            <div class="dim">avg <%= outlier["avg_exec_ms"] %>ms</div>
-          </td>
-          <% if @outliers_by_db.size > 1 %>
-            <td class="nowrap"><%= outlier["database"].name %></td>
-          <% end %>
-          <td>
-            <code class="sql"><%= strip_sqlcommenter(outlier["query"]).squish %></code>
-          </td>
-          <td class="dim">
-            <% if comment %>
-              <% comment_text = sqlcommenter_to_hash(comment).map { |k, v| "#{k}: #{CGI.unescape(v.to_s.gsub(/^'|'$/, ''))}" }.join("\n") %>
-              <span title="<%= comment_text %>">◆</span>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <%= render "pg_peek/reports/report", report: @report %>
 <% end %>
