@@ -21,6 +21,8 @@
 
 <% if @pg_stat_statements.usable? %>
   <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
+  ·
+  <%= link_to 'endpoints', database_endpoints_path(@database) %>
 <% elsif @pg_stat_statements.installed? %>
   <%= render "pg_peek/pg_stat_statements/preload_instructions",
              database: @database,

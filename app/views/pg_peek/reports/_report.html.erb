@@ -15,7 +15,7 @@
         <tr <%= "data-filter-value=#{row.value(report.columns.first).to_s.downcase.inspect}".html_safe %>>
           <% report.columns.each do |column| %>
             <td class="<%= cell_class(column) %>">
-              <% if column.key == link_column && defined?(link) && link %>
+              <% if local_assigns[:link] && column.key == local_assigns[:link_column] %>
                 <%= link_to format_cell(report, column, row), link.call(row) %>
               <% else %>
                 <%= format_cell(report, column, row) %>
