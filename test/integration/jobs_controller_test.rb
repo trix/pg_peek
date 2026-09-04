@@ -27,6 +27,27 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
     assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']"
   end
 
+  test "index does not also blame missing jobs when the module is not preloaded" do
+    PgPeek::PgStatStatements.stub(:new, not_preloaded_stat_statements) do
+      get pg_peek.jobs_path
+    end
+
+    # Showing "no jobs found" alongside the preload instructions points at the
+    # wrong problem: there are no statistics at all, not merely no job queries.
+    assert_select "article[aria-label='No jobs found']", count: 0
+  end
+
+  test "index mentions a statistics reset when there are no jobs to show" do
+    skip_unless_usable(@pg_stat_statements)
+
+    get pg_peek.jobs_path
+
+    assert_response :success
+    assert_select "article[aria-label='No jobs found']" do
+      assert_select "li", text: /statistics have been reset/i
+    end
+  end
+
   test "show renders preload instructions when the module is not preloaded" do
     PgPeek::PgStatStatements.stub(:new, not_preloaded_stat_statements) do
       get pg_peek.job_path("PostPublishJob")
