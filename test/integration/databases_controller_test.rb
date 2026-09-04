@@ -88,4 +88,21 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
   ensure
     config.connections = original
   end
+
+  test "show flags blocked sessions and long queries in attention" do
+    database = PgPeek::Database.find("primary")
+    holder = open_pg_session
+    holder.exec("SELECT pg_advisory_lock(424244)")
+    waiter = open_pg_session
+    waiter.send_query("SELECT pg_advisory_lock(424244)")
+    wait_for("the lock wait") do
+      PgPeek::Reports::Sessions.new(database: database).blocked.any? { |row| row["pid"].to_i == waiter.backend_pid }
+    end
+
+    get pg_peek.database_path(database)
+
+    assert_response :success
+    assert_select "ul.attention li a[href='#{pg_peek.database_activity_path(database)}']", text: /waiting for a lock/
+    assert_select "section h2", text: /activity/
+  end
 end

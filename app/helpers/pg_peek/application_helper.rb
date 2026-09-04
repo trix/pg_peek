@@ -6,6 +6,8 @@ module PgPeek::ApplicationHelper
     when "pg_stat_statements" then database_pg_stat_statements_path(database)
     when "endpoints"          then database_endpoints_path(database)
     when "jobs"               then database_jobs_path(database)
+    when "indexes"            then database_indexes_path(database)
+    when "activity"           then database_activity_path(database)
     else database_path(database)
     end
   end

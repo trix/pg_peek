@@ -76,6 +76,21 @@ class PgPeek::Database
     connection.execute(query).to_a
   end
 
+  def sessions
+    query = PgPeek::QueryLoader.load("activity/sessions", pg_version: major_version)
+    connection.execute(query).to_a
+  end
+
+  def waiting_locks
+    query = PgPeek::QueryLoader.load("activity/waiting_locks", pg_version: major_version)
+    connection.execute(query).to_a
+  end
+
+  def connection_summary
+    query = PgPeek::QueryLoader.load("activity/summary", pg_version: major_version)
+    connection.execute(query).first || {}
+  end
+
   def stats_reset_at
     value = vitals["stats_reset"]
     Time.zone.parse(value.to_s) if value.present?

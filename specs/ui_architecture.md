@@ -179,6 +179,37 @@ attribution, and the only place in the tool where it is worth the complexity.
 failures belong to GoodJob and Solid Queue. pg_peek links out; it does not
 compete. Its lane is the database cost of jobs.
 
+## Activity
+
+The one page about now rather than since the last reset. `pg_stat_activity`
+for the sessions, `pg_locks` for what a waiting session waits on,
+`pg_blocking_pids()` for who holds it. Needs no pg_stat_statements.
+
+- **Busiest first.** Blocked sessions, then running queries by age, then open
+  transactions by age. Idle connections are a pool doing its job: counted,
+  hidden behind a "show idle" link.
+- **Snapshot, not sum.** Every duration comes from one `clock_timestamp()`
+  reading. The page says when it was captured, refreshes every 5, 15 or 60
+  seconds via `?refresh=` (only those values are honoured, so a URL cannot
+  make it hammer the server), and `r` reloads.
+- **Source from tags.** A session is attributed to `posts#index` or
+  `ReportJob` from the SQLcommenter comment in its current query, otherwise
+  to its application_name.
+- **Attention rules** feed the overview: sessions waiting for a lock, queries
+  running longer than `long_query_warning_seconds` (5), sessions idle in
+  transaction longer than `idle_in_transaction_warning_seconds` (60), and
+  connections at 80% of `max_connections`.
+- **Read-only.** pg_peek never cancels or terminates a backend. It prints the
+  pid and the statement to run elsewhere.
+- **Hidden query text.** Other users' queries read as `<insufficient
+  privilege>` unless pg_peek's role has `pg_read_all_stats`; the page says so,
+  with the GRANT to run.
+
+Tests open extra sessions with the pg gem directly, since ActiveRecord's own
+connection is the one the report excludes. `pg_stat_activity` is snapshotted
+once per transaction and a test is one transaction, so the helper clears the
+snapshot on every look.
+
 ## URLs
 
 `CLAUDE.md` states that everything is database-prefixed and that GET links

@@ -116,11 +116,22 @@
     });
   }
 
+  // Reload ------------------------------------------------------------------
+  // The activity page is a snapshot; "r" refreshes it the way top does.
+  function initReload() {
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "r" && !typing() && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        window.location.reload();
+      }
+    });
+  }
+
   function init() {
     initTheme();
     initFilter();
     initConfirm();
     initSwitcher();
+    initReload();
   }
 
   if (document.readyState === "loading") {

@@ -3,6 +3,7 @@ PgPeek::Engine.routes.draw do
     resources :tables, only: [ :show ], param: :name
     resources :endpoints, only: [ :index ]
     resources :indexes, only: [ :index ]
+    resource :activity, only: [ :show ], controller: "activity"
     resources :jobs, only: [ :index, :show ], param: :job_class
 
     resource :pg_stat_statements do
