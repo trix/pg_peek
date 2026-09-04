@@ -23,10 +23,6 @@ Rails.application.config.pg_peek.tap do |config|
   # Supports strings and regular expressions.
   config.excluded_tables = %w[schema_migrations ar_internal_metadata]
 
-  # Stats provider for query analysis.
-  # Options: :pg_stat_statements (default), :pg_stat_monitor
-  # config.stats_provider = :pg_stat_statements
-
   # Maximum number of outlier queries to display.
   # config.outliers_limit = 20
 

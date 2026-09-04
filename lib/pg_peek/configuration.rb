@@ -1,17 +1,14 @@
 module PgPeek
   class Configuration
-    VALID_STATS_PROVIDERS = %i[pg_stat_statements pg_stat_monitor].freeze
     DEFAULT_EXCLUDED_TABLES = %w[schema_migrations ar_internal_metadata].freeze
     DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD = 10 # percentage
     DEFAULT_OUTLIERS_LIMIT = 20
 
-    attr_reader :stats_provider
     attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit,
                   :public_dashboard
     attr_writer :username, :password
 
     def initialize
-      @stats_provider = :pg_stat_statements
       @connections = {}
       @excluded_tables = DEFAULT_EXCLUDED_TABLES.dup
       @dead_tuple_warning_threshold = DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD
@@ -29,18 +26,6 @@ module PgPeek
 
     def credentials?
       username.present? && password.present?
-    end
-
-    def stats_provider=(value)
-      value = value.to_sym
-      if VALID_STATS_PROVIDERS.include?(value)
-        @stats_provider = value
-      else
-        Rails.logger.warn "[PgPeek] Invalid stats_provider '#{value}'. " \
-                          "Valid options: #{VALID_STATS_PROVIDERS.join(', ')}. " \
-                          "Falling back to :pg_stat_statements"
-        @stats_provider = :pg_stat_statements
-      end
     end
 
     # Reading credentials raises when the application has none set up at all,

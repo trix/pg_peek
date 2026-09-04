@@ -140,6 +140,20 @@ until your application has run for a while afterwards.
 - PostgreSQL 14+ with `pg_stat_statements` extension (for query analysis features)
 - Only officially supported PostgreSQL versions are supported
 
+### Why not pg_stat_monitor?
+
+pg_peek reads `pg_stat_statements` only. This is deliberate, not an omission.
+
+Percona's `pg_stat_monitor` has two genuine advantages: it parses SQLcommenter
+tags into a column of their own, and it keeps time-bucketed history rather than
+one counter since the last reset. Both would simplify this engine.
+
+But it is not part of PostgreSQL's contrib, so it is unavailable on Heroku and
+most managed PostgreSQL. And its bucketed figures are not comparable with
+`pg_stat_statements`' cumulative ones: supporting both would give two different
+answers to "what does this endpoint cost" depending on which extension happened
+to be installed. One data source that works everywhere beats two that disagree.
+
 ## Development
 
 ### Prerequisites
