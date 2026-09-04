@@ -94,13 +94,26 @@ module PgPeek::ApplicationHelper
 
   # Horizontal bar meter for call intensity visualization
   # Returns a 5-segment bar: ██░░░ (low) → █████ (high)
+  INTENSITY_SEGMENTS = 5
+
+  # One character throughout, with colour rather than shading separating the
+  # filled part from the rest: mixed block glyphs vary in weight between fonts
+  # and read as noise at this size.
   def intensity_bar(value, max_value)
-    return "░░░░░" if max_value.nil? || max_value.zero? || value.nil?
+    filled = intensity_segments(value, max_value)
 
-    ratio = value.to_f / max_value
-    filled = (ratio * 5).ceil.clamp(1, 5)
+    tag.span(class: "bar") do
+      tag.span("█" * filled, class: "bar-on") +
+        tag.span("█" * (INTENSITY_SEGMENTS - filled), class: "bar-off")
+    end
+  end
 
-    "█" * filled + "░" * (5 - filled)
+  # A non-zero value always keeps one segment lit, so "rare but present" is
+  # distinguishable from "absent" at a glance.
+  def intensity_segments(value, max_value)
+    return 0 if value.nil? || max_value.nil? || max_value.zero?
+
+    ((value.to_f / max_value) * INTENSITY_SEGMENTS).ceil.clamp(0, INTENSITY_SEGMENTS)
   end
 
   # Format duration from milliseconds as HH:MM:SS.mmm (e.g., 54:02:01.001)

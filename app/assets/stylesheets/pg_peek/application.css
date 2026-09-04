@@ -105,12 +105,6 @@ h1, h2, h3 {
   text-transform: lowercase;
 }
 
-h1::before, h2::before {
-  content: "▌";
-  color: var(--accent);
-  margin-right: 0.5ch;
-}
-
 p { margin: 0.5rem 0; }
 a { color: var(--accent); }
 strong { font-weight: 600; }
@@ -164,7 +158,10 @@ tbody tr:hover td { background: var(--panel); }
 .num { text-align: right; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
 .dim { color: var(--dim); }
-.intensity { letter-spacing: -0.15em; white-space: nowrap; }
+.intensity { white-space: nowrap; }
+.bar { letter-spacing: 0.08em; }
+.bar-on { color: var(--accent); }
+.bar-off { color: var(--line); }
 .sql { word-break: break-all; white-space: pre-wrap; background: none; border: 0; padding: 0; }
 
 /* Panels ------------------------------------------------------------------ */
