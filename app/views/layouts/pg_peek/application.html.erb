@@ -24,6 +24,7 @@
             <li><%= link_to "queries", database_pg_stat_statements_path(@database) %></li>
             <li><%= link_to "endpoints", database_endpoints_path(@database) %></li>
             <li><%= link_to "jobs", database_jobs_path(@database) %></li>
+            <li><%= link_to "indexes", database_indexes_path(@database) %></li>
             <li class="current-database">
               <% if switchable_databases.many? %>
                 <span class="switcher">
