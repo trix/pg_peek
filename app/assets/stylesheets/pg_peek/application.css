@@ -27,10 +27,10 @@
   --fg: #d8dbd8;
   --dim: #8a8f8b;
   --line: #2b302e;
-  --accent: #6fb2ff;
+  --accent: #3ee83e;
   --warn: #e0a24a;
   --danger: #f0796b;
-  --ok: #62c98d;
+  --ok: #3ee83e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,10 +40,10 @@
     --fg: #d8dbd8;
     --dim: #8a8f8b;
     --line: #2b302e;
-    --accent: #6fb2ff;
+    --accent: #3ee83e;
     --warn: #e0a24a;
     --danger: #f0796b;
-    --ok: #62c98d;
+    --ok: #3ee83e;
   }
 }
 
