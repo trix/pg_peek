@@ -123,4 +123,40 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     result = chart_icon_svg
     assert result.html_safe?
   end
+
+  # intensity_bar tests
+
+  test "intensity_bar always renders the same number of segments" do
+    [ [ 0, 100 ], [ 1, 100 ], [ 50, 100 ], [ 100, 100 ], [ nil, nil ] ].each do |value, max|
+      assert_equal 5, intensity_bar(value, max).scan("█").size,
+                   "expected 5 segments for #{value.inspect}/#{max.inspect}"
+    end
+  end
+
+  test "intensity_bar fills every segment at the maximum" do
+    assert_equal 5, filled_segments(intensity_bar(100, 100))
+  end
+
+  test "intensity_bar fills no segments when there is nothing to compare against" do
+    assert_equal 0, filled_segments(intensity_bar(nil, nil))
+    assert_equal 0, filled_segments(intensity_bar(5, 0))
+  end
+
+  test "intensity_bar keeps a small value visible" do
+    assert_equal 1, filled_segments(intensity_bar(1, 1000))
+  end
+
+  test "intensity_bar scales between the two" do
+    assert_equal 3, filled_segments(intensity_bar(50, 100))
+  end
+
+  test "intensity_bar is html_safe" do
+    assert intensity_bar(1, 2).html_safe?
+  end
+
+  private
+
+  def filled_segments(markup)
+    markup[/class="bar-on">([█]*)</, 1].to_s.size
+  end
 end

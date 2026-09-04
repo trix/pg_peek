@@ -1,15 +1,258 @@
 /*
- * This is a manifest file that'll be compiled into application.css, which will include all the files
- * listed below.
+ * pg_peek — a terminal-shaped stylesheet.
  *
- * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
- * or any plugin's vendor/assets/stylesheets directory can be referenced here using a relative path.
- *
- * You're free to add application-wide styles to this file and they'll appear at the bottom of the
- * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
- * files in this directory. Styles in this file should be added after the last require_* statement.
- * It is generally better to create a new file per style scope.
- *
- *= require_tree .
- *= require_self
+ * The data here is durations, counts, percentages and SQL: monospace with
+ * tabular figures makes columns scannable in a way proportional type cannot.
+ * Styling targets semantic elements rather than classes wherever possible, so
+ * views stay plain HTML.
  */
+
+:root {
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --bg: #fcfcfa;
+  --panel: #f1f1ec;
+  --fg: #1b1b19;
+  --dim: #6e6e67;
+  --line: #d8d8d1;
+  --accent: #0a5fbf;
+  --warn: #9a5b00;
+  --danger: #b32218;
+  --ok: #17683a;
+}
+
+:root[data-theme="dark"] {
+  --bg: #111312;
+  --panel: #1a1d1c;
+  --fg: #d8dbd8;
+  --dim: #8a8f8b;
+  --line: #2b302e;
+  --accent: #6fb2ff;
+  --warn: #e0a24a;
+  --danger: #f0796b;
+  --ok: #62c98d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111312;
+    --panel: #1a1d1c;
+    --fg: #d8dbd8;
+    --dim: #8a8f8b;
+    --line: #2b302e;
+    --accent: #6fb2ff;
+    --warn: #e0a24a;
+    --danger: #f0796b;
+    --ok: #62c98d;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1.5rem 4rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+main { max-width: 120ch; margin: 0 auto; }
+
+/* Header ------------------------------------------------------------------ */
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+}
+
+nav ul {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+nav ul:last-of-type { margin-left: auto; }
+nav img { display: block; width: 28px; height: 28px; }
+
+nav a {
+  color: var(--dim);
+  text-decoration: none;
+  text-transform: lowercase;
+}
+
+nav a:hover, nav a[aria-current] { color: var(--fg); }
+nav svg { display: block; fill: currentColor; width: 16px; height: 16px; }
+
+/* Type -------------------------------------------------------------------- */
+
+h1, h2, h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 1.75rem 0 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+
+p { margin: 0.5rem 0; }
+a { color: var(--accent); }
+strong { font-weight: 600; }
+small { color: var(--dim); }
+
+code {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0 0.4ch;
+  font-family: var(--mono);
+}
+
+pre {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+pre code { background: none; border: 0; padding: 0; }
+
+/* Tables ------------------------------------------------------------------ */
+
+.scroll { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--dim);
+  text-transform: lowercase;
+  border-bottom: 1px solid var(--line);
+  padding: 0.35rem 0.75rem 0.35rem 0;
+  white-space: nowrap;
+}
+
+tbody td {
+  vertical-align: top;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+tbody tr:hover td { background: var(--panel); }
+
+.num { text-align: right; white-space: nowrap; }
+.nowrap { white-space: nowrap; }
+.dim { color: var(--dim); }
+.intensity { white-space: nowrap; }
+.bar { letter-spacing: 0.08em; }
+.bar-on { color: var(--accent); }
+.bar-off { color: var(--line); }
+.sql { word-break: break-all; white-space: pre-wrap; background: none; border: 0; padding: 0; }
+
+/* Panels ------------------------------------------------------------------ */
+
+article {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 0 1rem 0.75rem;
+  margin: 1rem 0;
+}
+
+article > header {
+  margin: 0 -1rem 0.75rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+}
+
+article > header::before { content: "! "; color: var(--warn); }
+
+article > footer {
+  margin: 0.75rem -1rem 0;
+  padding: 0.5rem 1rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+}
+
+article ol, article ul { margin: 0.5rem 0; padding-left: 2.5ch; }
+
+details {
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.75rem;
+  margin: 0.5rem 0;
+}
+
+summary { cursor: pointer; color: var(--dim); }
+summary:hover { color: var(--fg); }
+details[open] summary { color: var(--fg); margin-bottom: 0.5rem; }
+details pre { margin: 0; border: 0; background: none; padding: 0; }
+
+/* Controls ---------------------------------------------------------------- */
+
+input[type="search"] {
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.75rem;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+input[type="search"]:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+
+button, .button {
+  background: var(--panel);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  padding: 0.3rem 1ch;
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--fg); }
+button.danger { color: var(--danger); border-color: var(--danger); }
+button.danger:hover { background: var(--danger); color: var(--bg); }
+
+form.inline { display: inline; margin: 0; }
+
+.toolbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.notice {
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  padding: 0.4rem 0.75rem;
+  margin: 0.75rem 0;
+}
+
+mark { background: var(--accent); color: var(--bg); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(28ch, 1fr));
+  gap: 1rem;
+}
+
+.stack > * + * { margin-top: 0.25rem; }
+[hidden] { display: none !important; }

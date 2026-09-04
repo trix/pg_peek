@@ -16,13 +16,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_01_000001) do
   enable_extension "pg_stat_statements"
 
   create_table "post_views", force: :cascade do |t|
-    t.bigint "post_id", null: false
-    t.string "user_agent"
-    t.string "ip_address"
-    t.string "referrer"
     t.datetime "created_at", null: false
+    t.string "ip_address"
+    t.bigint "post_id", null: false
+    t.string "referrer"
     t.datetime "updated_at", null: false
-    t.index [ "created_at" ], name: "index_post_views_on_created_at"
-    t.index [ "post_id" ], name: "index_post_views_on_post_id"
+    t.string "user_agent"
+    t.index ["created_at"], name: "index_post_views_on_created_at"
+    t.index ["post_id"], name: "index_post_views_on_post_id"
   end
 end
