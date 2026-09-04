@@ -94,6 +94,8 @@ nav a {
 
 nav a:hover, nav a[aria-current] { color: var(--fg); }
 
+nav .current-database { margin-left: 0.5rem; padding-left: 1rem; border-left: 1px solid var(--line); }
+
 .switcher { position: relative; display: inline-block; }
 .switcher::after { content: "▾"; color: var(--dim); position: absolute; right: 0; top: 0; pointer-events: none; }
 

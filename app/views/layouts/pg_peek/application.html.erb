@@ -21,8 +21,11 @@
         <ul>
           <li><%= link_to "databases", databases_path %></li>
           <% if @database %>
-            <li class="dim">/</li>
-            <li>
+            <li><%= link_to "overview", database_path(@database) %></li>
+            <li><%= link_to "queries", database_pg_stat_statements_path(@database) %></li>
+            <li><%= link_to "endpoints", database_endpoints_path(@database) %></li>
+            <li><%= link_to "jobs", database_jobs_path(@database) %></li>
+            <li class="current-database">
               <% if switchable_databases.many? %>
                 <span class="switcher">
                   <select data-switcher aria-label="Switch database">
@@ -35,9 +38,6 @@
                 <%= link_to @database.name, database_path(@database) %>
               <% end %>
             </li>
-            <li><%= link_to "queries", database_pg_stat_statements_path(@database) %></li>
-            <li><%= link_to "endpoints", database_endpoints_path(@database) %></li>
-            <li><%= link_to "jobs", database_jobs_path(@database) %></li>
           <% end %>
         </ul>
       </nav>
