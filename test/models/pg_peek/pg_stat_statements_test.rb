@@ -66,4 +66,22 @@ class PgPeek::PgStatStatementsTest < ActiveSupport::TestCase
       assert_nil @pg_stat_statements.reset_at
     end
   end
+
+  test "reset_at reads from its own database rather than the primary" do
+    analytics = PgPeek::Database.find("analytics")
+    skip "analytics database not configured" unless analytics&.connection_configured?
+
+    analytics_stat = PgPeek::PgStatStatements.new(database: analytics)
+    skip "pg_stat_statements not usable on this server" unless analytics_stat.usable?
+
+    # pg_stat_statements_info holds one cluster-wide value, so reading it through
+    # the wrong connection returns the same thing on a single server. Removing the
+    # extension from the primary makes the wrong connection fail loudly instead.
+    # The transactional test rolls the drop back afterwards.
+    ActiveRecord::Base.connection.execute("DROP EXTENSION IF EXISTS pg_stat_statements")
+
+    expected = analytics.connection.execute("SELECT stats_reset FROM pg_stat_statements_info").first["stats_reset"]
+
+    assert_equal expected, analytics_stat.reset_at
+  end
 end

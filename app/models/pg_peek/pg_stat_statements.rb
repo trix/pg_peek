@@ -73,7 +73,7 @@ class PgPeek::PgStatStatements
   def reset_at
     return unless usable?
 
-    result = ActiveRecord::Base.connection.execute <<-SQL
+    result = connection.execute <<-SQL
       SELECT stats_reset FROM pg_stat_statements_info;
     SQL
 
