@@ -33,7 +33,7 @@ class PgPeek::PgStatStatements
   end
 
   def shared_preload_libraries
-    @shared_preload_libraries ||= connection.select_value("SHOW shared_preload_libraries").to_s
+    @shared_preload_libraries ||= connection.select_value(PgPeek::QueryLoader.mark("SHOW shared_preload_libraries")).to_s
   end
 
   def outdated?
@@ -45,7 +45,7 @@ class PgPeek::PgStatStatements
   def reset!
     return unless usable?
 
-    connection.execute <<-SQL
+    connection.execute PgPeek::QueryLoader.mark(<<-SQL)
       SELECT pg_stat_statements_reset();
     SQL
   end
@@ -53,7 +53,7 @@ class PgPeek::PgStatStatements
   def reset_at
     return unless usable?
 
-    result = connection.execute <<-SQL
+    result = connection.execute PgPeek::QueryLoader.mark(<<-SQL)
       SELECT stats_reset FROM pg_stat_statements_info;
     SQL
 
@@ -73,7 +73,7 @@ class PgPeek::PgStatStatements
   def statement_count
     return unless usable?
 
-    connection.select_value(<<~SQL).to_i
+    connection.select_value(PgPeek::QueryLoader.mark(<<~SQL)).to_i
       SELECT count(*) FROM pg_stat_statements
       WHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
     SQL
@@ -116,7 +116,7 @@ class PgPeek::PgStatStatements
   private
 
   def verify_installation
-    result = connection.execute <<-SQL
+    result = connection.execute PgPeek::QueryLoader.mark(<<-SQL)
       SELECT default_version, installed_version FROM pg_available_extensions WHERE name = 'pg_stat_statements';
     SQL
 

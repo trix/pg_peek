@@ -15,6 +15,7 @@ WITH application_queries AS (
   FROM pg_stat_statements
   WHERE userid = (SELECT usesysid FROM pg_user WHERE usename = current_user LIMIT 1)
     AND dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+  AND query NOT LIKE '%/* pg_peek */%'
     AND query ~ 'controller=''[^'']+'''
     AND query ~ 'action=''[^'']+'''
     AND query !~* 'pg_catalog|information_schema|pg_index|pg_class|pg_attribute'

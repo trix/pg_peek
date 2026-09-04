@@ -49,7 +49,7 @@ class PgPeek::Database
   end
 
   def version_full
-    @version_full ||= connection.execute("SELECT version()").first["version"]
+    @version_full ||= connection.execute(PgPeek::QueryLoader.mark("SELECT version()")).first["version"]
   end
 
   def version
@@ -61,7 +61,7 @@ class PgPeek::Database
   end
 
   def installed_extensions
-    connection.execute("SELECT name, default_version, installed_version FROM pg_available_extensions WHERE installed_version IS NOT NULL ORDER BY name").to_a
+    connection.execute(PgPeek::QueryLoader.mark("SELECT name, default_version, installed_version FROM pg_available_extensions WHERE installed_version IS NOT NULL ORDER BY name")).to_a
   end
 
   def vitals

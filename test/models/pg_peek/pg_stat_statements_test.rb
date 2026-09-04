@@ -67,6 +67,27 @@ class PgPeek::PgStatStatementsTest < ActiveSupport::TestCase
     end
   end
 
+  test "the statistics leave pg_peek's own queries out" do
+    skip_unless_usable(@pg_stat_statements)
+
+    # The outliers query is expensive enough to make its own top list. Running
+    # it twice guarantees it has been recorded by the time it is read back.
+    @pg_stat_statements.outliers
+    rows = PgPeek::PgStatStatements.new(database: @database).outliers
+
+    # Both halves matter. Without the first, a marker that pg_stat_statements
+    # stripped would make the second pass trivially while excluding nothing.
+    recorded = @database.connection.select_value(
+      "SELECT count(*) FROM pg_stat_statements WHERE query LIKE '%/* pg_peek */%'"
+    ).to_i
+    assert_operator recorded, :>, 0, "expected the marker to survive into pg_stat_statements"
+
+    # Identifiers survive normalisation where string constants do not, so the
+    # engine's own statements are recognised by aliases only they use.
+    own = rows.select { |row| row["query"].match?(/sync_io_time|max_queries_per_request|total_exec_time_ms/) }
+    assert_empty own, own.map { |row| row["query"][0, 60] }
+  end
+
   test "reset_at reads from its own database rather than the primary" do
     analytics = PgPeek::Database.find("analytics")
     skip "analytics database not configured" unless analytics&.connection_configured?

@@ -1,7 +1,7 @@
 class PgPeek::Table
   attr_reader :database, :name
 
-  STATS_RESET_QUERY = "SELECT stats_reset FROM pg_stat_bgwriter".freeze
+  STATS_RESET_QUERY = PgPeek::QueryLoader.mark("SELECT stats_reset FROM pg_stat_bgwriter").freeze
 
   def self.inline_stats_for(database, table_names)
     return {} if table_names.empty?
