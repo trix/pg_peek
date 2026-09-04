@@ -51,7 +51,7 @@
 
 body {
   margin: 0;
-  padding: 0 1.5rem 4rem;
+  padding: 0 1.5rem 3.5rem;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--mono);
@@ -93,7 +93,6 @@ nav a {
 }
 
 nav a:hover, nav a[aria-current] { color: var(--fg); }
-nav svg { display: block; fill: currentColor; width: 16px; height: 16px; }
 
 /* Type -------------------------------------------------------------------- */
 
@@ -255,6 +254,35 @@ mark { background: var(--accent); color: var(--bg); }
 }
 
 .stack > * + * { margin-top: 0.25rem; }
+
+/* Status line ------------------------------------------------------------- */
+
+footer.status {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  gap: 2ch;
+  align-items: center;
+  padding: 0.35rem 1.5rem;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 12px;
+}
+
+footer.status a { color: var(--dim); text-decoration: none; }
+footer.status a:hover { color: var(--fg); }
+
+footer.status button {
+  margin-left: auto;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+footer.status button:hover { color: var(--fg); }
 
 /* Overview ---------------------------------------------------------------- */
 
