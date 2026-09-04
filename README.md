@@ -109,18 +109,21 @@ or the equivalent line in `postgresql.conf`. Then restart PostgreSQL. On a
 managed service this is usually a parameter-group setting; in Docker, pass
 `-c shared_preload_libraries=pg_stat_statements` to the server command.
 
-**2. Create the extension in each database.** The generator writes a one-line
-migration (`enable_extension "pg_stat_statements"`) so this is tracked in your
-schema and applied per environment:
+**2. Create the extension in each database.** A migration, so it is tracked in
+your schema and applied per environment:
+
+```ruby
+class EnablePgStatStatements < ActiveRecord::Migration[8.1]
+  def change
+    enable_extension "pg_stat_statements"
+  end
+end
+```
+
+For a secondary database, generate it into that database's migrations path:
 
 ```bash
-# For primary database
-bin/rails generate pg_peek:pg_stat_statements
-
-# For a secondary database (e.g., "analytics")
-bin/rails generate pg_peek:pg_stat_statements --db analytics
-
-bin/rails db:migrate
+bin/rails generate migration EnablePgStatStatements --database analytics
 ```
 
 If you do step 2 without step 1, the extension reports itself as installed but

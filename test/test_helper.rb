@@ -15,6 +15,14 @@ if ActiveSupport::TestCase.respond_to?(:fixture_paths=)
 end
 
 class ActiveSupport::TestCase
+  # The dummy schemas already create the extension; this is the safety net for
+  # a test that dropped it and did not put it back.
+  def install_pg_stat_statements(database)
+    database.connection.execute("CREATE EXTENSION IF NOT EXISTS pg_stat_statements")
+  rescue ActiveRecord::StatementInvalid
+    # Not available on this server: tests that need it skip via skip_unless_usable.
+  end
+
   # A development machine may run PostgreSQL without the module preloaded, so
   # skipping is the right answer there. In CI it means the workflow regressed and
   # this coverage disappeared silently -- which is how queries that were broken on

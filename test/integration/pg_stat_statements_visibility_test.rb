@@ -17,7 +17,7 @@ class PgStatStatementsVisibilityTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "article[aria-label='Extension pg_stat_statements is not enabled']" do
       assert_select "header", text: "pg_stat_statements extension is not enabled"
-      assert_select "code", text: "bin/rails generate pg_peek:pg_stat_statements"
+      assert_select "code", text: /enable_extension "pg_stat_statements"/
     end
     assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", count: 0
   end
