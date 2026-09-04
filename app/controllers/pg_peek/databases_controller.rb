@@ -4,6 +4,7 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
     # Resolved once: each miss logs a warning, and the view needs the answer
     # twice -- to list what works and to explain what does not.
     @configured_databases = @databases.select(&:connection_configured?)
+    @report = PgPeek::Reports::Databases.new(databases: @configured_databases)
   end
 
   def show

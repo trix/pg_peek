@@ -29,7 +29,9 @@ class PgPeek::Report
     end
   end
 
-  def initialize(database:)
+  # Most reports describe one database. A few -- the database list itself --
+  # describe the set of them, and pass nothing.
+  def initialize(database: nil)
     @database = database
   end
 
