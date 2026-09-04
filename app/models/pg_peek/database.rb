@@ -38,6 +38,12 @@ class PgPeek::Database
     connection_class&.connection
   end
 
+  # Cheap enough for the layout to ask on every request: reads the config, does
+  # not resolve the class or check out a connection.
+  def configured?
+    PgPeek.config.connections.key?(name)
+  end
+
   def connection_configured?
     connection.present?
   end

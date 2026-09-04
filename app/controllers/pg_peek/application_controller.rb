@@ -4,10 +4,15 @@ class PgPeek::ApplicationController < ActionController::Base
   # Host applications may set include_all_helpers = false, which limits a
   # controller to its own matching helper.
   helper PgPeek::ApplicationHelper, PgPeek::ReportHelper
+  helper_method :switchable_databases
 
   before_action :authenticate
 
   private
+    def switchable_databases
+      @switchable_databases ||= PgPeek::Database.all.select(&:configured?)
+    end
+
     # Resolved per request rather than when this class is loaded, so credentials
     # set after boot are honoured instead of silently ignored.
     #

@@ -22,7 +22,19 @@
           <li><%= link_to "databases", databases_path %></li>
           <% if @database %>
             <li class="dim">/</li>
-            <li><%= link_to @database.name, database_path(@database) %></li>
+            <li>
+              <% if switchable_databases.many? %>
+                <span class="switcher">
+                  <select data-switcher aria-label="Switch database">
+                    <% switchable_databases.each do |candidate| %>
+                      <option value="<%= switch_database_path(candidate) %>" <%= "selected" if candidate.name == @database.name %>><%= candidate.name %></option>
+                    <% end %>
+                  </select>
+                </span>
+              <% else %>
+                <%= link_to @database.name, database_path(@database) %>
+              <% end %>
+            </li>
             <li><%= link_to "queries", database_pg_stat_statements_path(@database) %></li>
             <li><%= link_to "endpoints", database_endpoints_path(@database) %></li>
             <li><%= link_to "jobs", database_jobs_path(@database) %></li>

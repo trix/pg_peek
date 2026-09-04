@@ -1,4 +1,15 @@
 module PgPeek::ApplicationHelper
+  # Where the current section lives in another database. Detail pages fall back
+  # to their section, since the other database may not have that table or job.
+  def switch_database_path(database)
+    case controller_name
+    when "pg_stat_statements" then database_pg_stat_statements_path(database)
+    when "endpoints"          then database_endpoints_path(database)
+    when "jobs"               then database_jobs_path(database)
+    else database_path(database)
+    end
+  end
+
   KNOWN_KEYS = %w[application controller namespaced_controller action job].freeze
 
   # example sql comment: /*action='show',application='Trmz',namespaced_controller='staff%2Fprocesses%2Fprocesses'*/

@@ -107,10 +107,20 @@
     });
   }
 
+  // Database switcher -------------------------------------------------------
+  function initSwitcher() {
+    document.querySelectorAll("[data-switcher]").forEach(function (select) {
+      select.addEventListener("change", function () {
+        window.location.assign(select.value);
+      });
+    });
+  }
+
   function init() {
     initTheme();
     initFilter();
     initConfirm();
+    initSwitcher();
   }
 
   if (document.readyState === "loading") {
