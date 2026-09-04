@@ -1,0 +1,31 @@
+<h1>pg_peek</h1>
+
+<article aria-label="Authentication is not configured">
+  <header>Authentication is not configured</header>
+  <p>
+    pg_peek exposes your schema, every normalized query in the database, and an
+    endpoint that resets query statistics. It refuses to serve
+    <code><%= Rails.env %></code> until you say how it should be protected.
+  </p>
+
+  <p>Either give it credentials, and it will ask for them:</p>
+  <pre><code>PG_PEEK_USERNAME=... PG_PEEK_PASSWORD=...</code></pre>
+  <p>or, equivalently, in <code>config/credentials.yml.enc</code>:</p>
+  <pre><code>pg_peek:
+  username: ...
+  password: ...</code></pre>
+
+  <p>
+    Or, if the engine is already mounted behind your own authentication, say so
+    in <code>config/initializers/pg_peek.rb</code>:
+  </p>
+  <pre><code>config.public_dashboard = true</code></pre>
+
+  <footer>
+    <small>
+      Development and test are exempt, so this never interrupts local work.
+      Credentials, once set, apply everywhere &mdash; including a development
+      server exposed through a tunnel.
+    </small>
+  </footer>
+</article>

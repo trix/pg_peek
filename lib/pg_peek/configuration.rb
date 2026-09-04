@@ -6,7 +6,9 @@ module PgPeek
     DEFAULT_OUTLIERS_LIMIT = 20
 
     attr_reader :stats_provider
-    attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit
+    attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit,
+                  :public_dashboard
+    attr_writer :username, :password
 
     def initialize
       @stats_provider = :pg_stat_statements
@@ -14,6 +16,19 @@ module PgPeek
       @excluded_tables = DEFAULT_EXCLUDED_TABLES.dup
       @dead_tuple_warning_threshold = DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD
       @outliers_limit = DEFAULT_OUTLIERS_LIMIT
+      @public_dashboard = false
+    end
+
+    def username
+      @username.presence || credential(:username) || ENV["PG_PEEK_USERNAME"].presence
+    end
+
+    def password
+      @password.presence || credential(:password) || ENV["PG_PEEK_PASSWORD"].presence
+    end
+
+    def credentials?
+      username.present? && password.present?
     end
 
     def stats_provider=(value)
@@ -26,6 +41,14 @@ module PgPeek
                           "Falling back to :pg_stat_statements"
         @stats_provider = :pg_stat_statements
       end
+    end
+
+    # Reading credentials raises when the application has none set up at all,
+    # which is not a configuration error for anyone using the ENV variables.
+    def credential(key)
+      Rails.application.try(:credentials)&.dig(:pg_peek, key).presence
+    rescue StandardError
+      nil
     end
 
     def connection_class_for(database_name)
