@@ -25,18 +25,18 @@ And then execute:
 bundle install
 ```
 
-Mount the engine in your `config/routes.rb`:
-
-```ruby
-mount PgPeek::Engine, at: "/pg_peek"
-```
-
-Then generate the initializer, which maps the databases in your `database.yml`
-to the ActiveRecord classes that connect to them:
+Then run the installer, which mounts the engine at `/pg_peek` and creates the
+initializer:
 
 ```bash
 bin/rails generate pg_peek:install
 ```
+
+Pass `--skip-routes` if you would rather mount the engine yourself, for example
+inside an authenticated scope.
+
+Now map each database in your `database.yml` to the ActiveRecord class that
+connects to it:
 
 ```ruby
 # config/initializers/pg_peek.rb
@@ -47,10 +47,22 @@ Rails.application.config.pg_peek.tap do |config|
 end
 ```
 
-This step is required. Without it pg_peek cannot open any connection and the
-dashboard lists no databases.
+This step is required. A database without an entry cannot be opened and is not
+listed.
 
 Visit `/pg_peek` in your application to access the dashboard.
+
+> [!WARNING]
+> PgPeek has no authentication of its own. Anyone who can reach the route can
+> read your schema, every normalized query in the database, and reset query
+> statistics. Mount it behind your application's existing authentication before
+> deploying it anywhere reachable:
+>
+> ```ruby
+> authenticate :user, ->(user) { user.admin? } do
+>   mount PgPeek::Engine, at: "/pg_peek"
+> end
+> ```
 
 ### Enabling pg_stat_statements
 

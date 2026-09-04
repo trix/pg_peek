@@ -1,16 +1,27 @@
-
 ===============================================================================
 
-PgPeek has been installed!
+PgPeek has been installed and mounted at /pg_peek.
 
 Next steps:
 
-1. Mount the engine in your config/routes.rb:
+1. Map your databases to their ActiveRecord classes in
+   config/initializers/pg_peek.rb:
 
-   mount PgPeek::Engine, at: "/pg_peek"
+     config.connections = { "primary" => "ApplicationRecord" }
 
-2. Configure options in config/initializers/pg_peek.rb (optional)
+   Every database you want to inspect needs an entry, or it will not be listed.
 
-3. Visit /pg_peek to view your PostgreSQL databases
+2. Visit /pg_peek to view your PostgreSQL databases
+
+Before deploying:
+
+   PgPeek has no authentication of its own. Anyone who can reach the route can
+   read your schema, every normalized query in the database, and reset query
+   statistics. Mount it behind whatever authentication your application already
+   uses, for example:
+
+     authenticate :user, ->(user) { user.admin? } do
+       mount PgPeek::Engine, at: "/pg_peek"
+     end
 
 ===============================================================================
