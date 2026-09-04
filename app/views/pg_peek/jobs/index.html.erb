@@ -128,25 +128,40 @@
 <% end %>
 
 <% if @jobs.empty? %>
-  <%# Only when every database is collecting: alongside the preload instructions
-      this would point at the wrong problem, since there are no statistics at all
-      rather than merely no job queries. %>
+  <%# Everything needed to tell these cases apart is already known, so name the
+      one that applies rather than listing every reason a dashboard can be empty.
+      Nothing is shown when a database is not collecting at all: the preload
+      instructions above are the answer in that case. %>
   <% if @not_preloaded.empty? %>
-    <article aria-label="No jobs found">
-      <header>No jobs found in query statistics</header>
-      <p>Jobs will appear here when:</p>
-      <ol>
-        <li><code>config.active_record.query_log_tags</code> includes <code>:job</code></li>
-        <li>Jobs have executed database queries</li>
-        <li>pg_stat_statements is installed on at least one database</li>
-        <li>No statistics have been reset since those jobs last ran &mdash; a
-            PostgreSQL restart clears them too</li>
-      </ol>
-      <p>Example configuration in <code>config/application.rb</code>:</p>
-      <pre><code>config.active_record.query_log_tags_enabled = true
-config.active_record.query_log_tags_format = :sqlcommenter
-config.active_record.query_log_tags = [ :application, :controller, :action, :job ]</code></pre>
-    </article>
+    <% if !@job_tag_configured %>
+      <article aria-label="Job tag not configured">
+        <header>Queries are not tagged with the job that ran them</header>
+        <p>
+          <code>config.active_record.query_log_tags</code> is
+          <code><%= @query_log_tags.to_a.inspect %></code>, which does not include
+          <code>:job</code>. Until it does, no query can be attributed to a job and
+          this page cannot fill, however many jobs run.
+        </p>
+        <p>In <code>config/application.rb</code>:</p>
+        <pre><code>config.active_record.query_log_tags = <%= (@query_log_tags.to_a + [ :job ]).inspect %></code></pre>
+      </article>
+    <% else %>
+      <article aria-label="No jobs have run yet">
+        <header>No job has run since statistics were last collected</header>
+        <p>
+          Query log tags include <code>:job</code> and pg_stat_statements is
+          collecting, so this page is working &mdash; there is simply nothing in it
+          yet. Jobs appear as they execute their first database query.
+        </p>
+        <% if @stats_reset_at %>
+          <p>
+            Statistics were last reset <strong><%= format_time_ago(@stats_reset_at) %></strong>
+            (<%= @stats_reset_at %>), so anything that ran before then is gone.
+            Restarting PostgreSQL clears them too.
+          </p>
+        <% end %>
+      </article>
+    <% end %>
   <% end %>
 <% else %>
   <div data-controller="search-filter" data-search-filter-debounce-value="300" data-search-filter-min-chars-value="2">

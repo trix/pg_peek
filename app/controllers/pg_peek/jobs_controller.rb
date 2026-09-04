@@ -13,8 +13,13 @@ class PgPeek::JobsController < PgPeek::ApplicationController
       return
     end
 
+    # Without the job tag no query can be attributed to a job, so an empty
+    # dashboard has nothing to do with whether jobs have run.
+    @job_tag_configured = @query_log_tags.to_a.include?(:job)
+
     @jobs = {}
     @not_preloaded = []
+    @stats_reset_at = nil
 
     PgPeek::Database.all.each do |database|
       next unless database.connection_configured?
@@ -26,6 +31,10 @@ class PgPeek::JobsController < PgPeek::ApplicationController
         @not_preloaded << [ database, pg_stat ]
         next
       end
+
+      # Raw PG results come back as strings; the view wants a Time to age.
+      reset_at = Time.zone.parse(pg_stat.reset_at.to_s) if pg_stat.reset_at.present?
+      @stats_reset_at = reset_at if reset_at && (@stats_reset_at.nil? || reset_at > @stats_reset_at)
 
       pg_stat.jobs&.each do |row|
         job_class = row["job_class"]

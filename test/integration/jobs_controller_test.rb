@@ -37,15 +37,26 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
     assert_select "article[aria-label='No jobs found']", count: 0
   end
 
-  test "index mentions a statistics reset when there are no jobs to show" do
+  test "index names the missing job tag as the cause when it is not configured" do
+    skip_unless_usable(@pg_stat_statements)
+
+    with_query_log_tags [ :application, :controller, :action ] do
+      get pg_peek.jobs_path
+    end
+
+    assert_response :success
+    assert_select "article[aria-label='Job tag not configured']"
+    assert_select "article[aria-label='No jobs have run yet']", count: 0
+  end
+
+  test "index blames the statistics reset when the job tag is configured" do
     skip_unless_usable(@pg_stat_statements)
 
     get pg_peek.jobs_path
 
     assert_response :success
-    assert_select "article[aria-label='No jobs found']" do
-      assert_select "li", text: /statistics have been reset/i
-    end
+    assert_select "article[aria-label='No jobs have run yet']"
+    assert_select "article[aria-label='Job tag not configured']", count: 0
   end
 
   test "show renders preload instructions when the module is not preloaded" do
@@ -64,5 +75,14 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
       pg_stat.define_singleton_method(:preloaded?) { false }
       pg_stat.define_singleton_method(:shared_preload_libraries) { "" }
     end
+  end
+
+  def with_query_log_tags(tags)
+    config = Rails.application.config.active_record
+    original = config.query_log_tags
+    config.query_log_tags = tags
+    yield
+  ensure
+    config.query_log_tags = original
   end
 end
