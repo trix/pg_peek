@@ -85,14 +85,41 @@ single endpoint, take `min(calls)` across its query shapes: some query runs
 exactly once per request, so that minimum approximates the request count. Then
 `calls / min_calls` is queries-per-request for each shape.
 
-A shape at 19× while its siblings sit at 1× is an N+1, and the query is named.
+A shape at 10x while its siblings sit at 1x is an N+1, and the query is named.
 
-This is a heuristic and the UI must say so:
+### Validated against the dummy application
 
-- it breaks when every query in an action is conditional, so no shape runs once
-  per request
+Measured with a controller issuing a deliberate ten-query N+1 on `#index` and a
+single query on `#show`, against a freshly reset `pg_stat_statements`:
+
+| endpoint | inferred requests | actual | q/req of the worst shape |
+|---|---|---|---|
+| `posts#index` | 6 | 6 | 10.0 — exactly the loop in the code |
+| `posts#show` | 7 | 7 | 1.0 |
+
+**The first attempt was wrong**, and instructively so. `posts#index` inferred 1
+request rather than 6, because Rails' one-off schema introspection — `SHOW
+max_identifier_length`, `pg_index`, `pg_class` and `pg_attribute` lookups — runs
+once when a model first loads and is tagged with whichever endpoint happened to
+trigger it. Those shapes sit at `calls = 1` forever and destroy a `min()`
+denominator. `posts#show` appeared correct only because `#index` had already
+paid that cost.
+
+So the denominator must be taken over application queries only:
+
+```sql
+AND query !~* 'pg_catalog|information_schema|pg_index|pg_class|pg_attribute|^\s*SHOW'
+```
+
+With that exclusion both endpoints infer their true request count and the N+1
+factor lands on the exact number in the source.
+
+### Remaining caveats
+
+- it still breaks when every query in an action is conditional, so no shape runs
+  exactly once per request
 - values are averages across the whole statistics window, not per-request truth
-- an action that changed behaviour mid-window blends both behaviours
+- an action whose behaviour changed mid-window blends both behaviours
 
 Show it prefixed with `~` and explain on hover rather than presenting it as
 measurement.
