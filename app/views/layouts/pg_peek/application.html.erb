@@ -16,10 +16,9 @@
     <main>
       <nav>
         <ul>
-          <li><%= link_to "pg_peek", root_path, class: "wordmark" %></li>
+          <li><%= link_to "pg_peek", databases_path, class: "wordmark" %></li>
         </ul>
         <ul>
-          <li><%= link_to "databases", databases_path %></li>
           <% if @database %>
             <li><%= link_to "overview", database_path(@database) %></li>
             <li><%= link_to "queries", database_pg_stat_statements_path(@database) %></li>
