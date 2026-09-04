@@ -31,6 +31,25 @@ Mount the engine in your `config/routes.rb`:
 mount PgPeek::Engine, at: "/pg_peek"
 ```
 
+Then generate the initializer, which maps the databases in your `database.yml`
+to the ActiveRecord classes that connect to them:
+
+```bash
+bin/rails generate pg_peek:install
+```
+
+```ruby
+# config/initializers/pg_peek.rb
+Rails.application.config.pg_peek.tap do |config|
+  config.connections = {
+    "primary" => "ApplicationRecord"
+  }
+end
+```
+
+This step is required. Without it pg_peek cannot open any connection and the
+dashboard lists no databases.
+
 Visit `/pg_peek` in your application to access the dashboard.
 
 ### Enabling pg_stat_statements

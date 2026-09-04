@@ -1,7 +1,42 @@
 <h1>Databases</h1>
 
+<%# An empty list means one of two quite different things, and the engine knows
+    which: PostgreSQL databases exist but none is mapped to a connection class,
+    or there are no PostgreSQL databases to show at all. %>
+<% if @configured_databases.empty? && @databases.any? %>
+  <article aria-label="No database connections configured">
+    <header>pg_peek has no database connections configured</header>
+    <p>
+      Found <%= pluralize(@databases.size, "PostgreSQL database") %> in
+      <code>config/database.yml</code>
+      (<%= safe_join(@databases.map { |database| content_tag(:code, database.name) }, ", ") %>),
+      but <code>config.pg_peek.connections</code> is empty, so none of them can be opened.
+    </p>
+    <p>Generate the initializer:</p>
+    <pre><code>bin/rails generate pg_peek:install</code></pre>
+    <p>Or add <code>config/initializers/pg_peek.rb</code> yourself:</p>
+    <pre><code>Rails.application.config.pg_peek.tap do |config|
+  config.connections = {
+<%= @databases.map { |database|
+      klass = database.primary ? "ApplicationRecord" : "#{database.name.camelize}Record"
+      %(    "#{database.name}" => "#{klass}")
+    }.join(",\n") %>
+  }
+end</code></pre>
+  </article>
+<% elsif @databases.empty? %>
+  <article aria-label="No PostgreSQL databases">
+    <header>No PostgreSQL databases found</header>
+    <p>
+      No entry in <code>config/database.yml</code> for the
+      <code><%= Rails.env %></code> environment uses the
+      <code>postgresql</code> adapter, so there is nothing for pg_peek to inspect.
+    </p>
+  </article>
+<% end %>
+
 <div class="grid">
-  <% @databases.select(&:connection_configured?).each do |database| %>
+  <% @configured_databases.each do |database| %>
     <div>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" height="64">
         <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
