@@ -151,6 +151,10 @@ it. It has to be trailing: `pg_stat_statements` stores a statement from its
 first token, so a leading comment is dropped -- while trailing text survives,
 which is also why Rails' own tags do.
 
+One consequence of the queryid rule above: rows recorded before the marker
+existed keep their original text, so after upgrading pg_peek its old queries
+stay attributed until the statistics are reset. Fresh statistics are exact.
+
 ### Tag naming
 
 The controller tag is `controller` in some applications and
