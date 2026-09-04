@@ -57,6 +57,15 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     assert_select ".vitals", text: /stats since/
   end
 
+  test "show flags unused indexes in attention" do
+    database = PgPeek::Database.find("primary")
+    database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
+
+    get pg_peek.database_path(database)
+
+    assert_select "ul.attention li a[href='#{pg_peek.database_indexes_path(database)}']", text: /unused ind/
+  end
+
   test "show flags a cache hit ratio below the threshold" do
     database = PgPeek::Database.find("primary")
     database.define_singleton_method(:vitals) { { "cache_hit_ratio" => "42.0" } }

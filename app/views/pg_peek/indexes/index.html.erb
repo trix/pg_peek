@@ -1,0 +1,31 @@
+<div class="toolbar">
+  <h1>indexes</h1>
+  <small class="dim">
+    <% if @stats_reset_at %>
+      scan counts since <%= format_time_ago(@stats_reset_at) %>
+    <% else %>
+      scan counts since statistics began &mdash; never reset
+    <% end %>
+  </small>
+</div>
+
+<% if @report.unused.any? %>
+  <article aria-label="Unused indexes">
+    <header>
+      <%= pluralize(@report.unused.size, "index") %> never scanned,
+      <%= number_to_human_size(@report.unused_bytes) %> of disk and write cost
+    </header>
+    <p>
+      Not read by any query since statistics were last reset. Primary keys and
+      unique indexes are not counted: they enforce constraints whether or not a
+      query reads them. Before dropping one, make sure the window covers your
+      rarest workloads &mdash; a month-end report is still a workload.
+    </p>
+  </article>
+<% end %>
+
+<% if @report.empty? %>
+  <p class="dim">No indexes on user tables.</p>
+<% else %>
+  <%= render "pg_peek/reports/report", report: @report %>
+<% end %>

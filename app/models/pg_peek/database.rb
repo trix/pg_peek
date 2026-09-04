@@ -71,6 +71,16 @@ class PgPeek::Database
     end
   end
 
+  def indexes
+    query = PgPeek::QueryLoader.load("indexes/all", pg_version: major_version)
+    connection.execute(query).to_a
+  end
+
+  def stats_reset_at
+    value = vitals["stats_reset"]
+    Time.zone.parse(value.to_s) if value.present?
+  end
+
   def tables_with_dead_tuples(threshold)
     query = PgPeek::QueryLoader.load("tables/dead_tuples", pg_version: major_version, threshold: threshold.to_i)
     connection.execute(query).to_a

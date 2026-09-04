@@ -57,6 +57,12 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
                    href: database_table_path(@database, table["relname"]) }
       end
 
+      indexes = PgPeek::Reports::Indexes.new(database: @database)
+      if indexes.unused.any?
+        items << { text: "#{helpers.pluralize(indexes.unused.size, "unused index")} · #{helpers.number_to_human_size(indexes.unused_bytes)}",
+                   href: database_indexes_path(@database) }
+      end
+
       if @stats_reset_at && @stats_reset_at > 1.hour.ago
         items << { text: "statistics were reset #{helpers.time_ago_in_words(@stats_reset_at)} ago -- figures may not be representative yet",
                    href: nil }

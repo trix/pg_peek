@@ -5,6 +5,7 @@ SELECT
   xact_commit,
   xact_rollback,
   deadlocks,
-  temp_files
+  temp_files,
+  stats_reset
 FROM pg_stat_database
 WHERE datname = current_database()
