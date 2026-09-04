@@ -27,15 +27,6 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
     @outliers = @pg_stat_statements.outliers
   end
 
-  def by_controller_action
-  end
-
-  def by_job
-  end
-
-  def by_table_name
-  end
-
   def reset
     @database = PgPeek::Database.find(params[:database_id])
     PgPeek::PgStatStatements.new(database: @database).reset!

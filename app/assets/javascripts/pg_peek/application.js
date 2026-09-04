@@ -10,8 +10,7 @@
     if (meta) meta.content = theme;
 
     document.querySelectorAll("[data-theme-toggle]").forEach(function (button) {
-      button.textContent = theme === "dark" ? "☀" : "☾";
-      button.setAttribute("aria-label", theme === "dark" ? "Turn on light mode" : "Turn on dark mode");
+      button.textContent = "theme: " + theme;
     });
   }
 
@@ -23,6 +22,21 @@
     }
   }
 
+  function toggleTheme() {
+    var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try {
+      localStorage.setItem("pg_peek.theme", next);
+    } catch (error) {
+      /* Nothing to do: the toggle still works for this page view. */
+    }
+  }
+
+  function typing() {
+    var el = document.activeElement;
+    return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+  }
+
   function initTheme() {
     var preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     applyTheme(storedTheme() || preferred);
@@ -30,14 +44,12 @@
     document.querySelectorAll("[data-theme-toggle]").forEach(function (button) {
       button.addEventListener("click", function (event) {
         event.preventDefault();
-        var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-        applyTheme(next);
-        try {
-          localStorage.setItem("pg_peek.theme", next);
-        } catch (error) {
-          /* Nothing to do: the toggle still works for this page view. */
-        }
+        toggleTheme();
       });
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "t" && !typing() && !event.metaKey && !event.ctrlKey) toggleTheme();
     });
   }
 
@@ -95,10 +107,20 @@
     });
   }
 
+  // Database switcher -------------------------------------------------------
+  function initSwitcher() {
+    document.querySelectorAll("[data-switcher]").forEach(function (select) {
+      select.addEventListener("change", function () {
+        window.location.assign(select.value);
+      });
+    });
+  }
+
   function init() {
     initTheme();
     initFilter();
     initConfirm();
+    initSwitcher();
   }
 
   if (document.readyState === "loading") {

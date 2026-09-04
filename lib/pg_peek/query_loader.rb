@@ -1,9 +1,25 @@
 module PgPeek
   class QueryLoader
+    # Every statement pg_peek issues ends with this, so the statistics queries
+    # can leave the engine's own cost out of what they report. It has to be a
+    # trailing comment: pg_stat_statements stores a statement from its first
+    # token, so a leading comment is dropped, while trailing text is kept --
+    # which is also why Rails' SQLcommenter tags survive.
+    MARKER = "/* pg_peek */".freeze
+
     class << self
       def load(path, pg_version:, **variables)
         sql = read_file(path, pg_version)
-        interpolate(sql, variables)
+        mark(interpolate(sql, variables))
+      end
+
+      def mark(sql)
+        # Only a marker at the end counts: the statistics queries mention the
+        # marker inside their own exclusion filter.
+        return sql if sql.rstrip.end_with?(MARKER)
+
+        # A trailing semicolon would end the statement before the comment.
+        "#{sql.rstrip.chomp(";")} #{MARKER}"
       end
 
       private

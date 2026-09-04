@@ -1,82 +1,51 @@
-<h1>ActiveJob Dashboard</h1>
+<div class="toolbar">
+  <h1>jobs</h1>
+  <small class="dim">stats since <%= format_time_ago(@stats_reset_at) %></small>
+</div>
 
-<% @not_preloaded.each do |database, pg_stat| %>
-  <%= render "pg_peek/pg_stat_statements/preload_instructions",
-             database: database,
-             pg_stat_statements: pg_stat %>
-<% end %>
-
-<% if @jobs.empty? %>
-  <%# Everything needed to tell these cases apart is already known, so name the
-      one that applies rather than listing every reason a dashboard can be empty.
-      Nothing is shown when a database is not collecting at all: the preload
-      instructions above are the answer in that case. %>
-  <% if @not_preloaded.empty? %>
-    <% if !@job_tag_configured %>
-      <article aria-label="Job tag not configured">
-        <header>Queries are not tagged with the job that ran them</header>
+<% if @report.empty? %>
+  <% if !@job_tag_configured %>
+    <article aria-label="Job tag not configured">
+      <header>Queries are not tagged with the job that ran them</header>
+      <p>
+        <code>config.active_record.query_log_tags</code> is
+        <code><%= Rails.application.config.active_record.query_log_tags.to_a.inspect %></code>,
+        which does not include <code>:job</code>. Until it does, no query can be
+        attributed to a job and this page cannot fill, however many jobs run.
+      </p>
+      <p>In <code>config/application.rb</code>:</p>
+      <pre><code>config.active_record.query_log_tags = <%= (Rails.application.config.active_record.query_log_tags.to_a + [ :job ]).inspect %></code></pre>
+    </article>
+  <% else %>
+    <article aria-label="No jobs have run yet">
+      <header>No job has run since statistics were last collected</header>
+      <p>
+        Query log tags include <code>:job</code> and pg_stat_statements is
+        collecting, so this page is working &mdash; there is simply nothing in it
+        yet. Jobs appear as they execute their first database query.
+      </p>
+      <% if @stats_reset_at %>
         <p>
-          <code>config.active_record.query_log_tags</code> is
-          <code><%= @query_log_tags.to_a.inspect %></code>, which does not include
-          <code>:job</code>. Until it does, no query can be attributed to a job and
-          this page cannot fill, however many jobs run.
+          Statistics were last reset <strong><%= format_time_ago(@stats_reset_at) %></strong>
+          (<%= @stats_reset_at %>), so anything that ran before then is gone.
+          Restarting PostgreSQL clears them too.
         </p>
-        <p>In <code>config/application.rb</code>:</p>
-        <pre><code>config.active_record.query_log_tags = <%= (@query_log_tags.to_a + [ :job ]).inspect %></code></pre>
-      </article>
-    <% else %>
-      <article aria-label="No jobs have run yet">
-        <header>No job has run since statistics were last collected</header>
-        <p>
-          Query log tags include <code>:job</code> and pg_stat_statements is
-          collecting, so this page is working &mdash; there is simply nothing in it
-          yet. Jobs appear as they execute their first database query.
-        </p>
-        <% if @stats_reset_at %>
-          <p>
-            Statistics were last reset <strong><%= format_time_ago(@stats_reset_at) %></strong>
-            (<%= @stats_reset_at %>), so anything that ran before then is gone.
-            Restarting PostgreSQL clears them too.
-          </p>
-        <% end %>
-      </article>
-    <% end %>
+      <% end %>
+    </article>
   <% end %>
 <% else %>
-  <div>
-    <input type="search"
-           placeholder="filter jobs… (press / to focus)"
-           data-filter-input
-           data-filter-noun="job"
-           autofocus
-           autocomplete="off">
-    <p class="dim" data-filter-count><%= pluralize(@jobs.size, "job") %></p>
+  <input type="search"
+         placeholder="filter jobs… (press / to focus)"
+         data-filter-input
+         data-filter-noun="job"
+         autofocus
+         autocomplete="off">
+  <p class="dim" data-filter-count></p>
 
-    <div class="scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>job class</th>
-          <th class="num">calls</th>
-          <th class="num">unique queries</th>
-          <th class="num">total time</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @jobs.each do |job_name, stats| %>
-          <tr data-filter-value="<%= job_name.downcase %>">
-            <td>
-              <%= link_to job_name, job_path(ERB::Util.url_encode(job_name)) %>
-            </td>
-            <td class="num"><%= number_with_delimiter(stats[:total_calls]) %></td>
-            <td class="num"><%= number_with_delimiter(stats[:query_count]) %></td>
-            <td class="num"><%= format_duration_from_ms(stats[:total_time_ms]) %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-    </div>
+  <%= render "pg_peek/reports/report",
+             report: @report,
+             link_column: :job_class,
+             link: ->(row) { database_job_path(@database, ERB::Util.url_encode(row["job_class"])) } %>
 
-    <p class="dim" data-filter-empty hidden>No jobs match that filter.</p>
-  </div>
+  <p class="dim" data-filter-empty hidden>No jobs match that filter.</p>
 <% end %>

@@ -46,6 +46,8 @@ class PgStatStatementsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']"
-    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", count: 0
+    # The nav still offers the section; the body must not link to a page that
+    # would only repeat the instructions already shown here.
+    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", text: "pg_stat_statements", count: 0
   end
 end

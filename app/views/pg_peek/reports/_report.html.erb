@@ -1,9 +1,11 @@
-<%# Draws any report. A new angle supplies columns and rows; nothing here changes. %>
+<%# Draws any report. Pass columns: [keys] and/or limit: n to show a projection. %>
+<% columns = local_assigns[:columns] ? report.columns.select { |c| local_assigns[:columns].include?(c.key) } : report.columns %>
+<% rows = local_assigns[:limit] ? report.rows.first(local_assigns[:limit]) : report.rows %>
 <div class="scroll">
   <table>
     <thead>
       <tr>
-        <% report.columns.each do |column| %>
+        <% columns.each do |column| %>
           <th class="<%= cell_class(column) %>" <%= "title=#{column.title.inspect}".html_safe if column.title %>>
             <%= column.header %>
           </th>
@@ -11,12 +13,12 @@
       </tr>
     </thead>
     <tbody>
-      <% report.rows.each do |row| %>
+      <% rows.each do |row| %>
         <tr <%= "data-filter-value=#{row.value(report.columns.first).to_s.downcase.inspect}".html_safe %>>
-          <% report.columns.each do |column| %>
+          <% columns.each do |column| %>
             <td class="<%= cell_class(column) %>">
               <% if local_assigns[:link] && column.key == local_assigns[:link_column] %>
-                <%= link_to format_cell(report, column, row), link.call(row) %>
+                <%= link_to format_cell(report, column, row), local_assigns[:link].call(row) %>
               <% else %>
                 <%= format_cell(report, column, row) %>
               <% end %>

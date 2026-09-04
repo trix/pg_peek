@@ -27,13 +27,12 @@ class PgPeek::EndpointsTest < ActiveSupport::TestCase
     end
   end
 
-  test "endpoints attributes a request to the action that issued it" do
+  test "endpoints are named controller#action" do
     skip_unless_usable(@pg_stat_statements)
 
-    # A request through the engine tags its own queries, which is the same
-    # mechanism a host application's endpoints go through.
-    Post.order(:id).limit(1).to_a
-
+    # Deliberately no query here. pg_stat_statements keys on queryid, which
+    # ignores comments, so an untagged run of a shape another test tags would
+    # claim that shape's single row and strip the attribution.
     endpoints = @pg_stat_statements.endpoints.map { |row| row["endpoint"] }
 
     assert endpoints.all? { |name| name.count("#") == 1 }, endpoints.inspect

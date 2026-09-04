@@ -124,6 +124,37 @@ factor lands on the exact number in the source.
 Show it prefixed with `~` and explain on hover rather than presenting it as
 measurement.
 
+### A limit of the approach, found the hard way
+
+`pg_stat_statements` keys on `queryid`, which is computed from the parse tree
+and **ignores comments**. Two executions of the same normalised shape from
+different endpoints share one row, and that row's stored text -- including its
+SQLcommenter tags -- is whichever ran *first* since the last reset.
+
+So a query shape shared across endpoints is attributed to only one of them.
+A `find_by(id:)` issued from three actions counts entirely against the first
+to run it. Shapes unique to an action attribute correctly, which in practice
+is most of them, but the figures are a lower bound per endpoint, not a
+partition of total time.
+
+This surfaced as an order-dependent test failure: an untagged model-level
+query claimed the row an integration test expected to see tagged. It is also
+the strongest concrete argument for `pg_stat_monitor`, which keeps comments as
+a dimension -- and why the README explains that choice rather than dismissing
+it.
+
+### pg_peek's own queries
+
+Every statement the engine issues carries a trailing `/* pg_peek */` comment,
+added in `QueryLoader`, and the statistics queries exclude anything containing
+it. It has to be trailing: `pg_stat_statements` stores a statement from its
+first token, so a leading comment is dropped -- while trailing text survives,
+which is also why Rails' own tags do.
+
+One consequence of the queryid rule above: rows recorded before the marker
+existed keep their original text, so after upgrading pg_peek its old queries
+stay attributed until the statistics are reset. Fresh statistics are exact.
+
 ### Tag naming
 
 The controller tag is `controller` in some applications and

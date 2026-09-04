@@ -1,4 +1,5 @@
 require "test_helper"
+require "minitest/mock"
 
 class DatabasesControllerTest < ActionDispatch::IntegrationTest
   test "index lists the databases that have a connection configured" do
@@ -29,6 +30,43 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "article[aria-label='No database connections configured'] pre",
                   text: /"primary" => "ApplicationRecord"/
+  end
+
+  test "root redirects to the primary database overview" do
+    get pg_peek.root_path
+
+    assert_redirected_to pg_peek.database_path(PgPeek::Database.find("primary"))
+  end
+
+  test "show returns 404 for an unknown database" do
+    get pg_peek.database_path("nope")
+
+    assert_response :not_found
+  end
+
+  test "show renders the overview panels when statistics are usable" do
+    database = PgPeek::Database.find("primary")
+    skip_unless_usable(PgPeek::PgStatStatements.new(database: database))
+
+    get pg_peek.database_path(database)
+
+    assert_response :success
+    assert_select "h2", text: /endpoints/
+    assert_select "h2", text: /slowest queries/
+    assert_select "h2", text: "attention"
+    assert_select ".vitals", text: /stats since/
+  end
+
+  test "show flags a cache hit ratio below the threshold" do
+    database = PgPeek::Database.find("primary")
+    database.define_singleton_method(:vitals) { { "cache_hit_ratio" => "42.0" } }
+
+    PgPeek::Database.stub(:find, database) do
+      get pg_peek.database_path(database)
+    end
+
+    assert_response :success
+    assert_select "ul.attention li", text: /cache hit ratio 42\.0% \(below 99%\)/
   end
 
   private

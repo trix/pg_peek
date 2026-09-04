@@ -11,9 +11,9 @@ class EndpointsControllerTest < ActionDispatch::IntegrationTest
   test "index renders the endpoints report when the extension is usable" do
     skip_unless_usable(@pg_stat_statements)
 
-    # Any request through the engine tags its own queries, so after one visit
-    # there is at least one endpoint to list.
-    get pg_peek.database_path(@database)
+    # pg_peek's own requests are excluded from its statistics, so the traffic
+    # has to come from the host application: the dummy's posts#index.
+    get "/posts"
     get pg_peek.database_endpoints_path(@database)
 
     assert_response :success

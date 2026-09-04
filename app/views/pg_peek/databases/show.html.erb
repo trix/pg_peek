@@ -1,28 +1,17 @@
-<details>
-  <summary>Database Details</summary>
-  <pre>
-  name: <%= @database.name %>
-  primary: <%= @database.primary %>
-  replica: <%= @database.replica %>
-  schema_format: <%= @database.schema_format %>
+<h1><%= @database.name %> <small class="dim">overview</small></h1>
 
-  version: <%= @database.version %>
-  </pre>
-</details>
-
-<details>
-  <summary>Installed Extensions</summary>
-  <pre>
-  <% @database.installed_extensions.each do |extension| %>
-  <%= extension['name'] %> <b><%= extension['installed_version'] %></b>
+<p class="vitals dim">
+  <span>postgres <%= @database.version %></span>
+  <% if @pg_stat_statements.usable? %>
+    <span>pg_stat_statements <%= @pg_stat_statements.installed_version %></span>
+    <span>stats since <%= format_time_ago(@stats_reset_at) %></span>
+    <span><%= pluralize(number_with_delimiter(@pg_stat_statements.statement_count), "statement") %></span>
   <% end %>
-  </pre>
-</details>
+  <% if @vitals["cache_hit_ratio"] %><span>cache hit <%= @vitals["cache_hit_ratio"] %>%</span><% end %>
+  <% if @vitals["connections"] %><span><%= pluralize(@vitals["connections"].to_i, "connection") %></span><% end %>
+</p>
 
 <% if @pg_stat_statements.usable? %>
-  <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
-  ·
-  <%= link_to 'endpoints', database_endpoints_path(@database) %>
 <% elsif @pg_stat_statements.installed? %>
   <%= render "pg_peek/pg_stat_statements/preload_instructions",
              database: @database,
@@ -53,21 +42,82 @@ end</code></pre>
   </article>
 <% end %>
 
-<h1>tables (<%= @tables.rows.size %>)</h1>
+<div class="panels">
+  <section class="wide">
+    <h2>attention</h2>
+    <ul class="attention">
+      <% if @attention.empty? %>
+        <li class="ok">nothing needs attention</li>
+      <% else %>
+        <% @attention.each do |item| %>
+          <li><%= item[:href] ? link_to(item[:text], item[:href]) : item[:text] %></li>
+        <% end %>
+      <% end %>
+    </ul>
+  </section>
 
-<div>
-  <input type="search"
-         placeholder="filter tables… (press / to focus)"
-         data-filter-input
-         data-filter-noun="table"
-         autofocus
-         autocomplete="off">
-  <p class="dim" data-filter-count></p>
+  <% if @pg_stat_statements.usable? %>
+    <section>
+      <h2>endpoints <%= link_to "all →", database_endpoints_path(@database) %></h2>
+      <% if @endpoints.empty? %>
+        <p class="dim">No endpoint has run a query yet.</p>
+      <% else %>
+        <%= render "pg_peek/reports/report", report: @endpoints,
+                   columns: %i[endpoint share total_exec_time_ms max_queries_per_request],
+                   limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
+      <% end %>
+    </section>
 
-  <%= render "pg_peek/reports/report",
-             report: @tables,
-             link_column: :name,
-             link: ->(row) { database_table_path(@database, row["name"]) } %>
+    <section>
+      <h2>jobs <%= link_to "all →", database_jobs_path(@database) %></h2>
+      <% if @jobs.empty? %>
+        <p class="dim">No job has run a query yet.</p>
+      <% else %>
+        <%= render "pg_peek/reports/report", report: @jobs,
+                   columns: %i[job_class share total_exec_time_ms],
+                   limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
+      <% end %>
+    </section>
 
-  <p class="dim" data-filter-empty hidden>No tables match that filter.</p>
+    <section class="wide">
+      <h2>slowest queries <%= link_to "all →", database_pg_stat_statements_path(@database) %></h2>
+      <% if @queries.empty? %>
+        <p class="dim">No statements recorded yet.</p>
+      <% else %>
+        <%= render "pg_peek/reports/report", report: @queries, limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <section class="wide">
+    <h2>tables (<%= @tables.rows.size %>)</h2>
+    <input type="search"
+           placeholder="filter tables… (press / to focus)"
+           data-filter-input
+           data-filter-noun="table"
+           autocomplete="off">
+    <p class="dim" data-filter-count></p>
+
+    <%= render "pg_peek/reports/report",
+               report: @tables,
+               link_column: :name,
+               link: ->(row) { database_table_path(@database, row["name"]) } %>
+
+    <p class="dim" data-filter-empty hidden>No tables match that filter.</p>
+  </section>
 </div>
+
+<details>
+  <summary>database details</summary>
+  <pre>name: <%= @database.name %>
+primary: <%= @database.primary %>
+replica: <%= @database.replica %>
+schema_format: <%= @database.schema_format %>
+version: <%= @database.version_full %></pre>
+</details>
+
+<details>
+  <summary>installed extensions</summary>
+  <pre><% @database.installed_extensions.each do |extension| %><%= extension['name'] %> <%= extension['installed_version'] %>
+<% end %></pre>
+</details>

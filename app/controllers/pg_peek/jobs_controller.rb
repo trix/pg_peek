@@ -1,73 +1,49 @@
 class PgPeek::JobsController < PgPeek::ApplicationController
+  before_action :set_database
+  before_action :require_sqlcommenter_tags
+
   def index
-    @query_log_tags_enabled = Rails.application.config.active_record.query_log_tags_enabled
-    @query_log_tags = Rails.application.config.active_record.query_log_tags
-
-    unless @query_log_tags_enabled
-      render plain: "Query log tags are not enabled. Please enable config.active_record.query_log_tags_enabled in your Rails configuration.", status: :unprocessable_entity
-      return
-    end
-
-    if Rails.application.config.active_record.query_log_tags_format == :legacy
-      render plain: "Legacy query log tags format is not supported. Please set config.active_record.query_log_tags_format to :sqlcommenter in your Rails configuration.", status: :unprocessable_entity
-      return
-    end
+    return render "pg_peek/pg_stat_statements/not_preloaded" unless @pg_stat_statements.usable?
 
     # Without the job tag no query can be attributed to a job, so an empty
     # dashboard has nothing to do with whether jobs have run.
-    @job_tag_configured = @query_log_tags.to_a.include?(:job)
-
-    @jobs = {}
-    @not_preloaded = []
-    @stats_reset_at = nil
-
-    PgPeek::Database.all.each do |database|
-      next unless database.connection_configured?
-
-      pg_stat = PgPeek::PgStatStatements.new(database: database)
-      next unless pg_stat.installed?
-
-      unless pg_stat.preloaded?
-        @not_preloaded << [ database, pg_stat ]
-        next
-      end
-
-      # Raw PG results come back as strings; the view wants a Time to age.
-      reset_at = Time.zone.parse(pg_stat.reset_at.to_s) if pg_stat.reset_at.present?
-      @stats_reset_at = reset_at if reset_at && (@stats_reset_at.nil? || reset_at > @stats_reset_at)
-
-      pg_stat.jobs&.each do |row|
-        job_class = row["job_class"]
-        next unless job_class.present?
-
-        @jobs[job_class] ||= { total_calls: 0, total_time_ms: 0, query_count: 0 }
-        @jobs[job_class][:total_calls] += row["total_calls"].to_i
-        @jobs[job_class][:total_time_ms] += row["total_exec_time_ms"].to_f
-        @jobs[job_class][:query_count] += row["query_count"].to_i
-      end
-    end
-
-    @jobs = @jobs.sort_by { |_, v| -v[:total_time_ms] }.to_h
+    @job_tag_configured = query_log_tags.include?(:job)
+    @stats_reset_at = stats_reset_at
+    @report = PgPeek::Reports::Jobs.new(database: @database)
   end
 
   def show
     @job_class = CGI.unescape(params[:job_class])
-    @outliers_by_db = {}
-    @not_preloaded = []
+    return render "pg_peek/pg_stat_statements/not_preloaded" unless @pg_stat_statements.usable?
 
-    PgPeek::Database.all.each do |database|
-      next unless database.connection_configured?
+    @report = PgPeek::Reports::JobQueries.new(database: @database, job_class: @job_class)
+  end
 
-      pg_stat = PgPeek::PgStatStatements.new(database: database)
-      next unless pg_stat.installed?
+  private
+    def set_database
+      @database = PgPeek::Database.find(params[:database_id]) or
+        raise ActiveRecord::RecordNotFound, "Database not found"
+      @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
+    end
 
-      unless pg_stat.preloaded?
-        @not_preloaded << [ database, pg_stat ]
-        next
+    def query_log_tags
+      Rails.application.config.active_record.query_log_tags.to_a
+    end
+
+    def require_sqlcommenter_tags
+      config = Rails.application.config.active_record
+
+      unless config.query_log_tags_enabled
+        return render plain: "Query log tags are not enabled. Please enable config.active_record.query_log_tags_enabled in your Rails configuration.", status: :unprocessable_entity
       end
 
-      outliers = pg_stat.outliers_by_job(@job_class)
-      @outliers_by_db[database] = outliers if outliers&.any?
+      if config.query_log_tags_format == :legacy
+        render plain: "Legacy query log tags format is not supported. Please set config.active_record.query_log_tags_format to :sqlcommenter in your Rails configuration.", status: :unprocessable_entity
+      end
     end
-  end
+
+    def stats_reset_at
+      value = @pg_stat_statements.reset_at
+      Time.zone.parse(value.to_s) if value.present?
+    end
 end
