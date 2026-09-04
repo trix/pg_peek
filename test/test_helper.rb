@@ -13,3 +13,21 @@ if ActiveSupport::TestCase.respond_to?(:fixture_paths=)
   ActiveSupport::TestCase.file_fixture_path = File.expand_path("fixtures", __dir__) + "/files"
   ActiveSupport::TestCase.fixtures :all
 end
+
+class ActiveSupport::TestCase
+  # A development machine may run PostgreSQL without the module preloaded, so
+  # skipping is the right answer there. In CI it means the workflow regressed and
+  # this coverage disappeared silently -- which is how queries that were broken on
+  # PostgreSQL 14-16 survived a green five-version matrix.
+  def skip_unless_usable(pg_stat_statements)
+    return if pg_stat_statements.usable?
+
+    message = "pg_stat_statements not usable on this server"
+
+    if ENV["CI"].present?
+      flunk "#{message} -- CI must start PostgreSQL with shared_preload_libraries=pg_stat_statements"
+    end
+
+    skip message
+  end
+end

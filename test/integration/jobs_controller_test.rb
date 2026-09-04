@@ -9,7 +9,7 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index renders when the extension is usable" do
-    skip "pg_stat_statements not usable on this server" unless @pg_stat_statements.usable?
+    skip_unless_usable(@pg_stat_statements)
 
     get pg_peek.jobs_path
 

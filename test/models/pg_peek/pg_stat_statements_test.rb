@@ -72,7 +72,7 @@ class PgPeek::PgStatStatementsTest < ActiveSupport::TestCase
     skip "analytics database not configured" unless analytics&.connection_configured?
 
     analytics_stat = PgPeek::PgStatStatements.new(database: analytics)
-    skip "pg_stat_statements not usable on this server" unless analytics_stat.usable?
+    skip_unless_usable(analytics_stat)
 
     # pg_stat_statements_info holds one cluster-wide value, so reading it through
     # the wrong connection returns the same thing on a single server. Removing the

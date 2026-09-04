@@ -44,33 +44,79 @@ jobs:
       matrix:
         postgres: ["14", "15", "16", "17", "18"]
 
-    services:
-      postgres:
-        image: postgres:${{ matrix.postgres }}-alpine
-        env:
-          POSTGRES_HOST_AUTH_METHOD: trust
-          POSTGRES_USER: runner
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     env:
       RAILS_ENV: test
+      POSTGRES_HOST: 127.0.0.1
       POSTGRES_PORT: 5432
+      POSTGRES_CONTAINER: pg_peek_postgres
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # Started by hand rather than as a service because GitHub Actions services
+      # cannot override the container command -- `options:` are docker *create*
+      # flags, which precede the image name. pg_stat_statements collects nothing
+      # unless loaded via shared_preload_libraries, so a service container leaves
+      # every test that reads it skipping itself into a green build. Mirrors the
+      # x-postgres-common anchor in docker-compose.yml.
+      - name: Start PostgreSQL with pg_stat_statements preloaded
+        run: |
+          docker run --detach --name "$POSTGRES_CONTAINER" \
+            --env POSTGRES_USER=runner \
+            --env POSTGRES_HOST_AUTH_METHOD=trust \
+            --publish "$POSTGRES_HOST:$POSTGRES_PORT:5432" \
+            postgres:${{ matrix.postgres }}-alpine \
+            postgres -c shared_preload_libraries=pg_stat_statements \
+                     -c pg_stat_statements.track=all
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
+
+      # The entrypoint runs a temporary socket-only server while it initialises
+      # the data directory, so only a TCP ping proves the real server is up.
+      - name: Wait for PostgreSQL
+        run: |
+          for _ in $(seq 1 60); do
+            if [ "$(docker inspect --format '{{.State.Running}}' "$POSTGRES_CONTAINER")" != "true" ]; then
+              echo "::error::PostgreSQL container stopped before accepting connections"
+              exit 1
+            fi
+
+            docker exec "$POSTGRES_CONTAINER" \
+              pg_isready --host=127.0.0.1 --username=runner --quiet && exit 0
+
+            sleep 1
+          done
+
+          echo "::error::PostgreSQL did not accept connections within 60 seconds"
+          exit 1
+
+      # The point of this job. Without it the suite skips its way to green, which
+      # is how queries broken on PostgreSQL 14-16 survived a five-version matrix.
+      - name: Verify pg_stat_statements is preloaded
+        run: |
+          psql() {
+            docker exec "$POSTGRES_CONTAINER" psql \
+              --host=127.0.0.1 --username=runner --dbname=postgres "$@"
+          }
+
+          libraries=$(psql --tuples-only --no-align --command="SHOW shared_preload_libraries")
+          echo "shared_preload_libraries = ${libraries:-(empty)}"
+
+          # -w so a differently-named library containing this one does not match
+          echo "$libraries" | grep -qw pg_stat_statements || {
+            echo "::error::pg_stat_statements is not preloaded"
+            exit 1
+          }
+
+          # Reading the view is the real invariant: it raises
+          # ObjectNotInPrerequisiteState exactly when the module is not loaded.
+          psql --command="CREATE EXTENSION IF NOT EXISTS pg_stat_statements" \
+               --command="SELECT count(*) FROM pg_stat_statements"
 
       - name: Setup database
         run: |
@@ -79,3 +125,7 @@ jobs:
 
       - name: Run tests
         run: bundle exec rails test -d
+
+      - name: Dump PostgreSQL logs
+        if: failure()
+        run: docker logs "$POSTGRES_CONTAINER"
