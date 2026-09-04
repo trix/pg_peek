@@ -183,6 +183,12 @@ tbody tr:hover td { background: var(--panel); }
 .intensity { white-space: nowrap; }
 .bar { letter-spacing: 0.08em; }
 .bar-on { color: var(--accent); }
+/* Brightness follows the value: a one-segment bar sits at 80%, five at full. */
+.bar-1 .bar-on { opacity: 0.80; }
+.bar-2 .bar-on { opacity: 0.85; }
+.bar-3 .bar-on { opacity: 0.90; }
+.bar-4 .bar-on { opacity: 0.95; }
+.bar-5 .bar-on { opacity: 1; }
 .bar-off { color: var(--line); }
 .sql { word-break: break-all; white-space: pre-wrap; background: none; border: 0; padding: 0; }
 

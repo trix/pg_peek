@@ -113,7 +113,8 @@ module PgPeek::ApplicationHelper
   def intensity_bar(value, max_value)
     filled = intensity_segments(value, max_value)
 
-    tag.span(class: "bar") do
+    # The level class lets the stylesheet brighten the bar with its value.
+    tag.span(class: "bar bar-#{filled}") do
       tag.span("█" * filled, class: "bar-on") +
         tag.span("█" * (INTENSITY_SEGMENTS - filled), class: "bar-off")
     end

@@ -191,6 +191,12 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     assert_equal 3, filled_segments(intensity_bar(50, 100))
   end
 
+  test "intensity_bar carries its level so the stylesheet can grade it" do
+    assert_includes intensity_bar(100, 100), 'class="bar bar-5"'
+    assert_includes intensity_bar(1, 1000), 'class="bar bar-1"'
+    assert_includes intensity_bar(nil, nil), 'class="bar bar-0"'
+  end
+
   test "intensity_bar is html_safe" do
     assert intensity_bar(1, 2).html_safe?
   end
