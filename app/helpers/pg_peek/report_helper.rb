@@ -11,6 +11,7 @@ module PgPeek::ReportHelper
     when :duration_ms  then format_duration_from_ms(value.to_f)
     when :duration     then format_duration(value)
     when :percent      then "#{value}%"
+    when :ratio        then "~#{value}"
     when :sql          then tag.code(strip_sqlcommenter(value.to_s).squish, class: "sql")
     when :intensity    then intensity_bar(value.to_f, report.max_for(column))
     else value.to_s

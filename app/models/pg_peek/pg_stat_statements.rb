@@ -90,6 +90,15 @@ class PgPeek::PgStatStatements
     result.to_a
   end
 
+  def endpoints
+    return unless usable?
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/endpoints",
+                                      pg_version: database.major_version,
+                                      limit: PgPeek.config.outliers_limit)
+    connection.execute(query).to_a
+  end
+
   def jobs
     return unless usable?
 

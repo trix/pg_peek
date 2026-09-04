@@ -1,0 +1,24 @@
+<div class="toolbar">
+  <h1>endpoints</h1>
+  <small class="dim">stats since <%= format_time_ago(Time.zone.parse(@pg_stat_statements.reset_at.to_s)) %></small>
+</div>
+
+<% if @report.empty? %>
+  <article aria-label="No endpoints found">
+    <header>No controller action has run a query yet</header>
+    <p>
+      Endpoints appear once requests have run database queries with
+      <code>:controller</code> (or <code>:namespaced_controller</code>) and
+      <code>:action</code> among <code>config.active_record.query_log_tags</code>.
+    </p>
+  </article>
+<% else %>
+  <%= render "pg_peek/reports/report", report: @report %>
+
+  <p class="dim">
+    <strong>q/req</strong> is an estimate: the request count is inferred from the
+    least-called query of each endpoint, so an action whose every query is
+    conditional will read low. A value above
+    <%= PgPeek::Reports::Endpoints::N_PLUS_ONE_THRESHOLD %> is the shape of an N+1.
+  </p>
+<% end %>
