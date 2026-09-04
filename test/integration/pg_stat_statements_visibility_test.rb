@@ -37,7 +37,9 @@ class PgStatStatementsVisibilityTest < ActionDispatch::IntegrationTest
     assert_select "article[aria-label='Extension pg_stat_statements is not available']", count: 0
 
     if PgPeek::PgStatStatements.new(database: @database).preloaded?
-      assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", text: "pg_stat_statements"
+      # The slowest-queries panel, and its link onward, only render when the
+      # statistics are actually usable.
+      assert_select "h2 a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']"
     else
       # Installed but never loaded at server start: the link would only lead to
       # a view that cannot be queried, so the instructions are shown instead.

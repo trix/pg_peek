@@ -70,6 +70,15 @@ class PgPeek::PgStatStatements
     result.to_a
   end
 
+  def statement_count
+    return unless usable?
+
+    connection.select_value(<<~SQL).to_i
+      SELECT count(*) FROM pg_stat_statements
+      WHERE dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+    SQL
+  end
+
   def endpoints
     return unless usable?
 

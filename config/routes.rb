@@ -12,5 +12,5 @@ PgPeek::Engine.routes.draw do
     end
   end
 
-  root to: "databases#index"
+  root to: "databases#home"
 end

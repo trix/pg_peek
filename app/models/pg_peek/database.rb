@@ -58,6 +58,18 @@ class PgPeek::Database
     connection.execute("SELECT name, default_version, installed_version FROM pg_available_extensions WHERE installed_version IS NOT NULL ORDER BY name").to_a
   end
 
+  def vitals
+    @vitals ||= begin
+      query = PgPeek::QueryLoader.load("database/vitals", pg_version: major_version)
+      connection.execute(query).first || {}
+    end
+  end
+
+  def tables_with_dead_tuples(threshold)
+    query = PgPeek::QueryLoader.load("tables/dead_tuples", pg_version: major_version, threshold: threshold.to_i)
+    connection.execute(query).to_a
+  end
+
   def tables
     connection.tables.sort - PgPeek.config.excluded_tables
   end
