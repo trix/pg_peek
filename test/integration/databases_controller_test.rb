@@ -51,7 +51,7 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     get pg_peek.database_path(database)
 
     assert_response :success
-    assert_select "h2", text: /where time goes/
+    assert_select "h2", text: /endpoints/
     assert_select "h2", text: /slowest queries/
     assert_select "h2", text: "attention"
     assert_select ".vitals", text: /stats since/

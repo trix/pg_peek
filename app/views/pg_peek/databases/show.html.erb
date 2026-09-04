@@ -43,29 +43,7 @@ end</code></pre>
 <% end %>
 
 <div class="panels">
-  <% if @pg_stat_statements.usable? %>
-    <section>
-      <h2>where time goes <%= link_to "endpoints →", database_endpoints_path(@database) %></h2>
-      <% if @endpoints.empty? %>
-        <p class="dim">No endpoint has run a query yet.</p>
-      <% else %>
-        <%= render "pg_peek/reports/report", report: @endpoints,
-                   columns: %i[endpoint share total_exec_time_ms max_queries_per_request],
-                   limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
-      <% end %>
-
-      <h2>jobs <%= link_to "all →", database_jobs_path(@database) %></h2>
-      <% if @jobs.empty? %>
-        <p class="dim">No job has run a query yet.</p>
-      <% else %>
-        <%= render "pg_peek/reports/report", report: @jobs,
-                   columns: %i[job_class share total_exec_time_ms],
-                   limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
-      <% end %>
-    </section>
-  <% end %>
-
-  <section>
+  <section class="wide">
     <h2>attention</h2>
     <ul class="attention">
       <% if @attention.empty? %>
@@ -79,6 +57,28 @@ end</code></pre>
   </section>
 
   <% if @pg_stat_statements.usable? %>
+    <section>
+      <h2>endpoints <%= link_to "all →", database_endpoints_path(@database) %></h2>
+      <% if @endpoints.empty? %>
+        <p class="dim">No endpoint has run a query yet.</p>
+      <% else %>
+        <%= render "pg_peek/reports/report", report: @endpoints,
+                   columns: %i[endpoint share total_exec_time_ms max_queries_per_request],
+                   limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
+      <% end %>
+    </section>
+
+    <section>
+      <h2>jobs <%= link_to "all →", database_jobs_path(@database) %></h2>
+      <% if @jobs.empty? %>
+        <p class="dim">No job has run a query yet.</p>
+      <% else %>
+        <%= render "pg_peek/reports/report", report: @jobs,
+                   columns: %i[job_class share total_exec_time_ms],
+                   limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
+      <% end %>
+    </section>
+
     <section class="wide">
       <h2>slowest queries <%= link_to "all →", database_pg_stat_statements_path(@database) %></h2>
       <% if @queries.empty? %>
