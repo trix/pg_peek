@@ -68,13 +68,3 @@ pg_stat_statements_default_version:   <%= @pg_stat_statements.default_version %>
 <% else %>
   <p class="dim">No outliers found.</p>
 <% end %>
-
-<details>
-  <summary>sqlcommenter patterns for this application</summary>
-  <% @controllers_actions.each do |controller, actions| %>
-    <% actions.each do |action| %>
-      <p class="dim"><%= controller %>#<%= action %></p>
-      <pre>$$%/*action='<%= action %>',application='<%= @application %>',namespaced_controller='<%= ERB::Util.url_encode(controller) %>'*/%$$</pre>
-    <% end %>
-  <% end %>
-</details>

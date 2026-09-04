@@ -24,18 +24,6 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
     # which case querying its views raises instead of returning rows.
     return render :not_preloaded unless @pg_stat_statements.usable?
 
-    # Group routes by controller and list unique actions per controller
-    routes = Rails.application.routes.routes
-
-    @controllers_actions = routes.group_by { |route| route.defaults[:controller] }.transform_values do |routes|
-      routes.map { |route| route.defaults[:action] }.compact_blank.sort.uniq
-    end.compact_blank
-
-    # Filter out internal Rails controllers (optional but common)
-    @controllers_actions.reject! { |controller, _| controller&.start_with?("rails/", "action_", "active_storage", "turbo", "view_components") }
-
-    @application = Rails.application.class.module_parent_name
-
     @outliers = @pg_stat_statements.outliers
   end
 
