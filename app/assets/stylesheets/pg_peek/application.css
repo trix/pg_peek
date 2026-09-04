@@ -110,7 +110,10 @@ nav a:hover, nav a[aria-current] { color: var(--fg); }
   cursor: pointer;
 }
 
-.switcher select:focus { outline: 1px solid var(--accent); outline-offset: 2px; }
+/* Keyboard focus only: after a mouse pick the select keeps focus, and a ring
+   that lingers after every switch reads as a stuck highlight. */
+.switcher select:focus { outline: none; }
+.switcher select:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 
 /* Type -------------------------------------------------------------------- */
 
