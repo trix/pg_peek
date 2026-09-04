@@ -9,6 +9,6 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
   def show
     @database = PgPeek::Database.find(params[:id])
     @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
-    @table_stats = PgPeek::Table.inline_stats_for(@database, @database.tables)
+    @tables = PgPeek::Reports::Tables.new(database: @database)
   end
 end

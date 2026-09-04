@@ -47,7 +47,7 @@
   </article>
 <% end %>
 
-<h1>Tables (<%= @database.tables.count %>)</h1>
+<h1>tables (<%= @tables.rows.size %>)</h1>
 
 <div>
   <input type="search"
@@ -58,22 +58,10 @@
          autocomplete="off">
   <p class="dim" data-filter-count></p>
 
-  <div class="scroll">
-  <table>
-    <thead>
-      <tr><th>table</th><th class="num">cache hit (heap / index)</th></tr>
-    </thead>
-    <tbody>
-  <% @database.tables.each do |table_name| %>
-    <% stats = @table_stats[table_name] || {} %>
-    <tr data-filter-value="<%= table_name.downcase %>">
-      <td><%= link_to table_name, database_table_path(@database, table_name) %></td>
-      <td class="num dim"><%= format_inline_cache_stats(stats[:heap_hit_ratio], stats[:index_hit_ratio]) %></td>
-    </tr>
-  <% end %>
-    </tbody>
-  </table>
-  </div>
+  <%= render "pg_peek/reports/report",
+             report: @tables,
+             link_column: :name,
+             link: ->(row) { database_table_path(@database, row["name"]) } %>
 
   <p class="dim" data-filter-empty hidden>No tables match that filter.</p>
 </div>

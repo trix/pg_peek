@@ -1,0 +1,29 @@
+<%# Draws any report. A new angle supplies columns and rows; nothing here changes. %>
+<div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <% report.columns.each do |column| %>
+          <th class="<%= cell_class(column) %>" <%= "title=#{column.title.inspect}".html_safe if column.title %>>
+            <%= column.header %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% report.rows.each do |row| %>
+        <tr <%= "data-filter-value=#{row.value(report.columns.first).to_s.downcase.inspect}".html_safe %>>
+          <% report.columns.each do |column| %>
+            <td class="<%= cell_class(column) %>">
+              <% if column.key == link_column && defined?(link) && link %>
+                <%= link_to format_cell(report, column, row), link.call(row) %>
+              <% else %>
+                <%= format_cell(report, column, row) %>
+              <% end %>
+            </td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
