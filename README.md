@@ -93,21 +93,46 @@ never interrupted.
 
 ### Enabling pg_stat_statements
 
-To enable query performance monitoring, run the generator to create a migration:
+Query analysis needs the `pg_stat_statements` extension, and enabling it is two
+separate steps on two different things. Doing only the first is the most common
+way to end up with a dashboard that shows nothing.
 
-```bash
-# For primary database
-bin/rails generate pg_peek:pg_stat_statements
+**1. Load the module into the server.** This is PostgreSQL configuration, not
+database state: a migration cannot do it, and it takes effect only after a
+restart.
 
-# For a secondary database (e.g., "analytics")
-bin/rails generate pg_peek:pg_stat_statements --db analytics
+```sql
+ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';
 ```
 
-Then run the migration:
+or the equivalent line in `postgresql.conf`. Then restart PostgreSQL. On a
+managed service this is usually a parameter-group setting; in Docker, pass
+`-c shared_preload_libraries=pg_stat_statements` to the server command.
+
+**2. Create the extension in each database.** A migration, so it is tracked in
+your schema and applied per environment:
+
+```ruby
+class EnablePgStatStatements < ActiveRecord::Migration[8.1]
+  def change
+    enable_extension "pg_stat_statements"
+  end
+end
+```
+
+For a secondary database, generate it into that database's migrations path:
 
 ```bash
-bin/rails db:migrate
+bin/rails generate migration EnablePgStatStatements --database analytics
 ```
+
+If you do step 2 without step 1, the extension reports itself as installed but
+its views cannot be queried. pg_peek detects this and shows the instructions
+above in place of every page that needs statistics, so you will not be left
+guessing — but you will be left waiting for a restart.
+
+A restart also clears all collected statistics, so expect an empty dashboard
+until your application has run for a while afterwards.
 
 ### Requirements
 

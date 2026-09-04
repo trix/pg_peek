@@ -4,8 +4,8 @@ require "minitest/mock"
 class JobsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @database = PgPeek::Database.find("primary")
+    install_pg_stat_statements(@database)
     @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
-    @pg_stat_statements.install! if @pg_stat_statements.available?
   end
 
   test "index renders when the extension is usable" do

@@ -30,12 +30,16 @@
 <% elsif @pg_stat_statements.available? %>
   <article aria-label="Extension pg_stat_statements is not enabled">
     <header>pg_stat_statements extension is not enabled</header>
-    <p>To enable query performance monitoring, run:</p>
+    <p>Create it with a migration, so it is tracked in your schema:</p>
     <% if @database.primary %>
-      <pre><code>bin/rails generate pg_peek:pg_stat_statements</code></pre>
+      <pre><code>bin/rails generate migration EnablePgStatStatements</code></pre>
     <% else %>
-      <pre><code>bin/rails generate pg_peek:pg_stat_statements --db <%= @database.name %></code></pre>
+      <pre><code>bin/rails generate migration EnablePgStatStatements --database <%= @database.name %></code></pre>
     <% end %>
+    <pre><code>def change
+  enable_extension "pg_stat_statements"
+end</code></pre>
+    <p>Then <code>bin/rails db:migrate</code>.</p>
   </article>
 <% else %>
   <article aria-label="Extension pg_stat_statements is not available">

@@ -36,26 +36,6 @@ class PgPeek::PgStatStatements
     @shared_preload_libraries ||= connection.select_value("SHOW shared_preload_libraries").to_s
   end
 
-  def install!
-    return if installed?
-
-    connection.execute <<-SQL
-      CREATE EXTENSION pg_stat_statements;
-    SQL
-
-    verify_installation
-  end
-
-  def upgrade!
-    return unless installed?
-
-    connection.execute <<-SQL
-      ALTER EXTENSION pg_stat_statements UPDATE TO '#{default_version}';
-    SQL
-
-    verify_installation
-  end
-
   def outdated?
     return false unless installed?
 
