@@ -1,0 +1,17 @@
+<article aria-label="Extension pg_stat_statements is not preloaded">
+  <header>pg_stat_statements is not loaded</header>
+  <p>
+    The extension is installed on <strong><%= database.name %></strong>, but the module was not
+    loaded when the server started, so it collects no statistics and its views cannot be queried.
+  </p>
+  <p>Add it to <code>postgresql.conf</code>:</p>
+  <pre><code>shared_preload_libraries = 'pg_stat_statements'</code></pre>
+  <p>Or set it without editing the file by hand:</p>
+  <pre><code>ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';</code></pre>
+  <footer>
+    <small>
+      A server restart is required — this setting cannot be reloaded.
+      Currently loaded: <code><%= pg_stat_statements.shared_preload_libraries.presence || "(none)" %></code>
+    </small>
+  </footer>
+</article>

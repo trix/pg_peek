@@ -53,7 +53,9 @@ services:
     ports:
       - "5444:5432"
     volumes:
-      - postgres18_data:/var/lib/postgresql/data
+      # PostgreSQL 18 images moved PGDATA into a versioned subdirectory, so the
+      # volume mounts one level up from where 14-17 mount it.
+      - postgres18_data:/var/lib/postgresql
 
 volumes:
   postgres14_data:

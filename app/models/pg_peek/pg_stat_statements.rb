@@ -1,4 +1,6 @@
 class PgPeek::PgStatStatements
+  LIBRARY_NAME = "pg_stat_statements".freeze
+
   attr_reader :database, :default_version, :installed_version
 
   def initialize(database:)
@@ -17,6 +19,21 @@ class PgPeek::PgStatStatements
 
   def installed?
     installed_version.present?
+  end
+
+  # The extension can be created in the database while the module itself was
+  # never loaded at server start. Querying the view then raises
+  # PG::ObjectNotInPrerequisiteState, so every read has to check this first.
+  def preloaded?
+    shared_preload_libraries.split(",").map(&:strip).include?(LIBRARY_NAME)
+  end
+
+  def usable?
+    installed? && preloaded?
+  end
+
+  def shared_preload_libraries
+    @shared_preload_libraries ||= connection.select_value("SHOW shared_preload_libraries").to_s
   end
 
   def install!
@@ -46,7 +63,7 @@ class PgPeek::PgStatStatements
   end
 
   def reset!
-    return unless installed?
+    return unless usable?
 
     connection.execute <<-SQL
       SELECT pg_stat_statements_reset();
@@ -54,9 +71,9 @@ class PgPeek::PgStatStatements
   end
 
   def reset_at
-    return unless installed?
+    return unless usable?
 
-    result = ActiveRecord::Base.connection.execute <<-SQL
+    result = connection.execute <<-SQL
       SELECT stats_reset FROM pg_stat_statements_info;
     SQL
 
@@ -64,7 +81,7 @@ class PgPeek::PgStatStatements
   end
 
   def outliers
-    return unless installed?
+    return unless usable?
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers",
                                       pg_version: database.major_version,
@@ -74,7 +91,7 @@ class PgPeek::PgStatStatements
   end
 
   def jobs
-    return unless installed?
+    return unless usable?
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/jobs",
                                       pg_version: database.major_version)
@@ -83,7 +100,7 @@ class PgPeek::PgStatStatements
   end
 
   def outliers_by_job(job_class)
-    return unless installed?
+    return unless usable?
 
     # Build pattern to match job='JobClassName' in SQLcommenter
     # Need to escape for SQL LIKE and quote properly

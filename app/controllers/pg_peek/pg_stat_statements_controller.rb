@@ -9,18 +9,20 @@ class PgPeek::PgStatStatementsController < PgPeek::ApplicationController
 
     # check if config.active_record.query_log_tags_enabled is true
     unless @query_log_tags_enabled
-      render plain: "Query log tags are not enabled. Please enable config.active_record.query_log_tags_enabled in your Rails configuration.", status: :unprocessable_entity
-      nil
+      return render plain: "Query log tags are not enabled. Please enable config.active_record.query_log_tags_enabled in your Rails configuration.", status: :unprocessable_entity
     end
 
     # https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format
     if Rails.application.config.active_record.query_log_tags_format == :legacy
-      render plain: "Legacy query log tags format is not supported. Please set config.active_record.query_log_tags_format to :sqlcommenter in your Rails configuration.", status: :unprocessable_entity
-      nil
+      return render plain: "Legacy query log tags format is not supported. Please set config.active_record.query_log_tags_format to :sqlcommenter in your Rails configuration.", status: :unprocessable_entity
     end
 
     @database = PgPeek::Database.find(params[:database_id])
     @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
+
+    # The extension can be installed while the module was never preloaded, in
+    # which case querying its views raises instead of returning rows.
+    return render :not_preloaded unless @pg_stat_statements.usable?
 
     # Group routes by controller and list unique actions per controller
     routes = Rails.application.routes.routes
