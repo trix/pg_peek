@@ -138,8 +138,12 @@
   </pre>
 </details>
 
-<% if @pg_stat_statements.installed? %>
+<% if @pg_stat_statements.usable? %>
   <%= link_to 'pg_stat_statements', database_pg_stat_statements_path(@database) %>
+<% elsif @pg_stat_statements.installed? %>
+  <%= render "pg_peek/pg_stat_statements/preload_instructions",
+             database: @database,
+             pg_stat_statements: @pg_stat_statements %>
 <% elsif @pg_stat_statements.available? %>
   <article aria-label="Extension pg_stat_statements is not enabled">
     <header>pg_stat_statements extension is not enabled</header>

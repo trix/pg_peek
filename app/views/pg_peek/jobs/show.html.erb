@@ -3,16 +3,24 @@
   <%= link_to "Back to Jobs", jobs_path, role: "button", class: "secondary outline" %>
 </div>
 
+<% @not_preloaded.each do |database, pg_stat| %>
+  <%= render "pg_peek/pg_stat_statements/preload_instructions",
+             database: database,
+             pg_stat_statements: pg_stat %>
+<% end %>
+
 <% if @outliers_by_db.empty? %>
-  <article aria-label="No queries found">
-    <header>No queries found for this job</header>
-    <p>This could mean:</p>
-    <ul>
-      <li>The job hasn't executed any database queries recently</li>
-      <li>pg_stat_statements statistics have been reset</li>
-      <li>The job queries are not in the top outliers</li>
-    </ul>
-  </article>
+  <% if @not_preloaded.empty? %>
+    <article aria-label="No queries found">
+      <header>No queries found for this job</header>
+      <p>This could mean:</p>
+      <ul>
+        <li>The job hasn't executed any database queries recently</li>
+        <li>pg_stat_statements statistics have been reset</li>
+        <li>The job queries are not in the top outliers</li>
+      </ul>
+    </article>
+  <% end %>
 <% else %>
   <% all_outliers = @outliers_by_db.flat_map { |db, outliers| outliers.map { |o| o.merge("database" => db) } } %>
   <% max_calls = all_outliers.map { |o| o["ncalls"].to_s.gsub(/[^0-9]/, "").to_i }.max %>

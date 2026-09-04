@@ -121,6 +121,12 @@
 
 <h1>ActiveJob Dashboard</h1>
 
+<% @not_preloaded.each do |database, pg_stat| %>
+  <%= render "pg_peek/pg_stat_statements/preload_instructions",
+             database: database,
+             pg_stat_statements: pg_stat %>
+<% end %>
+
 <% if @jobs.empty? %>
   <article aria-label="No jobs found">
     <header>No jobs found in query statistics</header>

@@ -46,6 +46,12 @@ Rails.application.configure do
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
+  # PgPeek reads SQLcommenter tags out of pg_stat_statements, so the views it
+  # serves are only reachable with query log tags enabled.
+  config.active_record.query_log_tags_enabled = true
+  config.active_record.query_log_tags_format = :sqlcommenter
+  config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
+
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 

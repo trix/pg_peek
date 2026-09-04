@@ -14,12 +14,18 @@ class PgPeek::JobsController < PgPeek::ApplicationController
     end
 
     @jobs = {}
+    @not_preloaded = []
 
     PgPeek::Database.all.each do |database|
       next unless database.connection_configured?
 
       pg_stat = PgPeek::PgStatStatements.new(database: database)
       next unless pg_stat.installed?
+
+      unless pg_stat.preloaded?
+        @not_preloaded << [ database, pg_stat ]
+        next
+      end
 
       pg_stat.jobs&.each do |row|
         job_class = row["job_class"]
@@ -38,12 +44,18 @@ class PgPeek::JobsController < PgPeek::ApplicationController
   def show
     @job_class = CGI.unescape(params[:job_class])
     @outliers_by_db = {}
+    @not_preloaded = []
 
     PgPeek::Database.all.each do |database|
       next unless database.connection_configured?
 
       pg_stat = PgPeek::PgStatStatements.new(database: database)
       next unless pg_stat.installed?
+
+      unless pg_stat.preloaded?
+        @not_preloaded << [ database, pg_stat ]
+        next
+      end
 
       outliers = pg_stat.outliers_by_job(@job_class)
       @outliers_by_db[database] = outliers if outliers&.any?
