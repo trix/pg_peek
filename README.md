@@ -52,17 +52,46 @@ listed.
 
 Visit `/pg_peek` in your application to access the dashboard.
 
-> [!WARNING]
-> PgPeek has no authentication of its own. Anyone who can reach the route can
-> read your schema, every normalized query in the database, and reset query
-> statistics. Mount it behind your application's existing authentication before
-> deploying it anywhere reachable:
->
-> ```ruby
-> authenticate :user, ->(user) { user.admin? } do
->   mount PgPeek::Engine, at: "/pg_peek"
-> end
-> ```
+### Authentication
+
+pg_peek exposes your schema, every normalized query in the database, and an
+endpoint that resets query statistics. Outside development and test it refuses
+to serve until you say how it is protected.
+
+Give it credentials and it asks for them over HTTP basic:
+
+```bash
+PG_PEEK_USERNAME=peek PG_PEEK_PASSWORD=...
+```
+
+or equivalently in `config/credentials.yml.enc`:
+
+```yaml
+pg_peek:
+  username: peek
+  password: ...
+```
+
+Credentials, once set, apply in **every** environment — including a development
+server exposed through a tunnel.
+
+If you would rather mount the engine behind authentication you already have, say
+so and pg_peek stays out of the way:
+
+```ruby
+# config/initializers/pg_peek.rb
+config.public_dashboard = true
+```
+
+```ruby
+# config/routes.rb
+constraints ->(request) { request.session[:admin_id].present? } do
+  mount PgPeek::Engine, at: "/pg_peek"
+end
+```
+
+Development and test are exempt when no credentials are set, so local work is
+never interrupted.
 
 ### Enabling pg_stat_statements
 

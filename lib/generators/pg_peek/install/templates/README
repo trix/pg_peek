@@ -15,13 +15,17 @@ Next steps:
 
 Before deploying:
 
-   PgPeek has no authentication of its own. Anyone who can reach the route can
-   read your schema, every normalized query in the database, and reset query
-   statistics. Mount it behind whatever authentication your application already
-   uses, for example:
+   pg_peek exposes your schema, every normalized query in the database, and an
+   endpoint that resets query statistics. Outside development and test it
+   refuses to serve until you say how it is protected.
 
-     authenticate :user, ->(user) { user.admin? } do
-       mount PgPeek::Engine, at: "/pg_peek"
-     end
+   Give it credentials, and it will ask for them:
+
+     PG_PEEK_USERNAME=... PG_PEEK_PASSWORD=...
+
+   Or, if you mount it behind authentication you already have, say so in
+   config/initializers/pg_peek.rb:
+
+     config.public_dashboard = true
 
 ===============================================================================

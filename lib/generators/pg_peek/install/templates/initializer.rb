@@ -1,7 +1,18 @@
 # PgPeek configuration
-# See https://github.com/tiramizoo/pg_peek for more information.
+# See https://github.com/trix/pg_peek for more information.
 
 Rails.application.config.pg_peek.tap do |config|
+  # Authentication.
+  #
+  # Outside development and test, pg_peek refuses to serve until it knows how it
+  # is protected. Give it credentials with PG_PEEK_USERNAME / PG_PEEK_PASSWORD or
+  # a pg_peek: entry in credentials.yml.enc and it asks for them over HTTP basic.
+  # Credentials, once set, apply in every environment -- including a development
+  # server exposed through a tunnel.
+  #
+  # If you mount the engine behind your own authentication instead, say so:
+  # config.public_dashboard = true
+
   # Database connections mapping.
   # Maps database names (from database.yml) to their ActiveRecord base class.
   config.connections = {
