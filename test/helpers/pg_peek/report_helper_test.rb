@@ -32,8 +32,9 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_equal "1,234", cell(:calls, 0)
   end
 
-  test "formats millisecond durations" do
-    assert_equal "00:00:02.500", cell(:total_time, 0)
+  test "formats millisecond durations compactly, with the exact figure on hover" do
+    assert_includes cell(:total_time, 0), ">2.50s<"
+    assert_includes cell(:total_time, 0), 'title="2,500.0 ms"'
   end
 
   test "appends a percent sign" do

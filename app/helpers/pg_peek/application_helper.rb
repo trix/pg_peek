@@ -127,32 +127,47 @@ module PgPeek::ApplicationHelper
     ((value.to_f / max_value) * INTENSITY_SEGMENTS).ceil.clamp(0, INTENSITY_SEGMENTS)
   end
 
-  # Format duration from milliseconds as HH:MM:SS.mmm (e.g., 54:02:01.001)
+  # Durations pick their unit by magnitude: 210ms, 1.20s, 2m 05s, 1h 12m.
+  # Values stay narrow and read at a glance, and a header sits over data of
+  # similar width. The exact figure belongs in a title, not the cell.
   def format_duration_from_ms(total_ms)
-    return "00:00:00.000" if total_ms.nil? || total_ms.zero?
+    ms = total_ms.to_f
+    return "0ms" if ms <= 0
+    return format("%.1fms", ms) if ms < 10
+    return "#{ms.round}ms" if ms < 1000
 
-    total_seconds = total_ms / 1000.0
-    hours = (total_seconds / 3600).to_i
-    minutes = ((total_seconds % 3600) / 60).to_i
-    seconds = (total_seconds % 60).to_i
-    milliseconds = (total_ms % 1000).round
+    seconds = ms / 1000.0
+    return format("%.2fs", seconds) if seconds < 60
 
-    format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+    minutes, secs = seconds.divmod(60)
+    return format("%dm %02ds", minutes, secs) if minutes < 60
+
+    hours, mins = minutes.divmod(60)
+    format("%dh %02dm", hours, mins)
   end
 
-  # Format duration as HH:MM:SS.mmm (e.g., 54:02:01.001)
-  def format_duration(interval_string)
-    return "00:00:00.000" if interval_string.blank?
+  # Rails sets intervalstyle = iso_8601 on its connections, so an interval
+  # arrives as "PT1.204S". Anything else -- a raw psql connection, or a host
+  # that overrides the style -- renders as "HH:MM:SS.fff" with a "N days"
+  # prefix once long enough. Both are read.
+  def format_duration(interval_text)
+    format_duration_from_ms(interval_to_ms(interval_text))
+  end
 
-    duration = ActiveSupport::Duration.parse(interval_string)
-    total_seconds = duration.to_f
+  def interval_to_ms(interval_text)
+    text = interval_text.to_s.strip
+    return 0.0 if text.empty?
+    return ActiveSupport::Duration.parse(text).to_f * 1000.0 if text.start_with?("P")
 
-    hours = (total_seconds / 3600).to_i
-    minutes = ((total_seconds % 3600) / 60).to_i
-    seconds = (total_seconds % 60).to_i
-    milliseconds = ((total_seconds % 1) * 1000).round
+    days = text[/(\d+)\s+days?/, 1].to_i
+    hours = minutes = seconds = 0.0
+    if (match = text.match(/(\d+):(\d{2}):(\d{2}(?:\.\d+)?)/))
+      hours, minutes, seconds = match[1].to_i, match[2].to_i, match[3].to_f
+    end
 
-    format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds)
+    (days * 86_400 + hours * 3600 + minutes * 60 + seconds) * 1000.0
+  rescue ActiveSupport::Duration::ISO8601Parser::ParsingError
+    0.0
   end
 
   # Comment icon SVG for SQLcommenter tooltip

@@ -8,14 +8,19 @@ module PgPeek::ReportHelper
 
     case column.format
     when :number       then format_number(value.to_i)
-    when :duration_ms  then format_duration_from_ms(value.to_f)
-    when :duration     then format_duration(value)
+    when :duration_ms  then duration_cell(value.to_f)
+    when :duration     then duration_cell(interval_to_ms(value))
     when :percent      then "#{value}%"
     when :ratio        then "~#{value}"
     when :sql          then tag.code(strip_sqlcommenter(value.to_s).squish, class: "sql")
     when :intensity    then intensity_bar(value.to_f, report.max_for(column))
     else value.to_s
     end
+  end
+
+  # The compact figure is what you scan; the exact one is a hover away.
+  def duration_cell(ms)
+    tag.span(format_duration_from_ms(ms), title: "#{number_with_delimiter(ms.round(1))} ms")
   end
 
   def cell_class(column)

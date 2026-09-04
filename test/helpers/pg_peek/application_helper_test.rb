@@ -124,6 +124,47 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     assert result.html_safe?
   end
 
+  # duration tests: the unit scales with magnitude so values stay narrow and
+  # comparable at a glance -- 210ms next to 1.20s, not 00:00:00.210 next to
+  # 00:00:01.204.
+
+  test "format_duration_from_ms picks a unit by magnitude" do
+    assert_equal "2.0ms",  format_duration_from_ms(2)
+    assert_equal "210ms",  format_duration_from_ms(210)
+    assert_equal "1.20s",  format_duration_from_ms(1204)
+    assert_equal "2m 05s", format_duration_from_ms(125_000)
+    assert_equal "1h 12m", format_duration_from_ms(4_320_000)
+  end
+
+  test "format_duration_from_ms treats nothing as zero" do
+    assert_equal "0ms", format_duration_from_ms(nil)
+    assert_equal "0ms", format_duration_from_ms(0)
+  end
+
+  test "format_duration reads the ISO 8601 intervals a Rails connection returns" do
+    assert_equal "210ms",   format_duration("PT0.21044S")
+    assert_equal "1.20s",   format_duration("PT1.204S")
+    assert_equal "2m 05s",  format_duration("PT2M5S")
+    assert_equal "1h 12m",  format_duration("PT1H12M")
+    assert_equal "26h 00m", format_duration("P1DT2H")
+  end
+
+  test "format_duration also reads the default interval text" do
+    assert_equal "210ms",  format_duration("00:00:00.21")
+    assert_equal "1.20s",  format_duration("00:00:01.204")
+    assert_equal "2m 05s", format_duration("00:02:05")
+    assert_equal "1h 12m", format_duration("01:12:00")
+  end
+
+  test "format_duration handles intervals that span days" do
+    assert_equal "26h 00m", format_duration("1 day 02:00:00")
+  end
+
+  test "format_duration treats blank as zero" do
+    assert_equal "0ms", format_duration(nil)
+    assert_equal "0ms", format_duration("")
+  end
+
   # intensity_bar tests
 
   test "intensity_bar always renders the same number of segments" do
