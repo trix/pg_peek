@@ -79,10 +79,12 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "database show page has chart icon links to table detail" do
+  test "database show page links each table to its detail page" do
     get pg_peek.database_path(@database)
 
     assert_response :success
-    assert_select "a[href='#{pg_peek.database_table_path(@database, 'posts')}'] svg"
+    # The list used to render the table name and an icon as two separate links
+    # to the same page; one link per row now carries the name itself.
+    assert_select "a[href='#{pg_peek.database_table_path(@database, 'posts')}']", text: "posts"
   end
 end

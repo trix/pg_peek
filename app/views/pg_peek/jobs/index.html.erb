@@ -1,124 +1,3 @@
-<script type="module">
-  import { Controller, Application } from "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3/dist/stimulus.js"
-
-  const application = Application.start()
-
-  class SearchFilterController extends Controller {
-    static targets = ["input", "count", "item", "summary", "empty"]
-    static values = { debounce: { type: Number, default: 300 }, minChars: { type: Number, default: 2 } }
-
-    connect() {
-      this.originalTexts = new Map()
-      this.summaryTargets.forEach((summary, index) => {
-        this.originalTexts.set(index, summary.textContent)
-      })
-
-      const urlParams = new URLSearchParams(window.location.search)
-      const query = urlParams.get("q")
-      if (query) {
-        this.inputTarget.value = query
-        this.filter()
-      } else {
-        this.showAll()
-      }
-
-      document.addEventListener("keydown", this.handleGlobalKeydown.bind(this))
-    }
-
-    disconnect() {
-      document.removeEventListener("keydown", this.handleGlobalKeydown.bind(this))
-    }
-
-    handleGlobalKeydown(event) {
-      if (event.key === "/" && document.activeElement !== this.inputTarget) {
-        event.preventDefault()
-        this.inputTarget.focus()
-      }
-      if (event.key === "Escape" && document.activeElement === this.inputTarget) {
-        this.clear()
-      }
-    }
-
-    onInput() {
-      clearTimeout(this.debounceTimer)
-      this.debounceTimer = setTimeout(() => this.filter(), this.debounceValue)
-    }
-
-    filter() {
-      const query = this.inputTarget.value.trim().toLowerCase()
-
-      this.updateUrl(query)
-
-      if (query.length < this.minCharsValue) {
-        this.showAll()
-        return
-      }
-
-      let matchCount = 0
-
-      this.itemTargets.forEach((item, index) => {
-        const jobName = item.dataset.jobName
-        const originalText = this.originalTexts.get(index)
-
-        if (jobName.includes(query)) {
-          item.hidden = false
-          matchCount++
-          this.highlightMatch(this.summaryTargets[index], originalText, query)
-        } else {
-          item.hidden = true
-          this.summaryTargets[index].innerHTML = originalText
-        }
-      })
-
-      this.updateCount(matchCount)
-      this.emptyTarget.hidden = matchCount > 0
-    }
-
-    highlightMatch(summary, originalText, query) {
-      const lowerText = originalText.toLowerCase()
-      const index = lowerText.indexOf(query)
-      if (index >= 0) {
-        const before = originalText.substring(0, index)
-        const match = originalText.substring(index, index + query.length)
-        const after = originalText.substring(index + query.length)
-        summary.innerHTML = `${before}<mark>${match}</mark>${after}`
-      }
-    }
-
-    showAll() {
-      this.itemTargets.forEach((item, index) => {
-        item.hidden = false
-        this.summaryTargets[index].innerHTML = this.originalTexts.get(index)
-      })
-      this.updateCount(this.itemTargets.length)
-      this.emptyTarget.hidden = true
-    }
-
-    clear() {
-      this.inputTarget.value = ""
-      this.showAll()
-      this.updateUrl("")
-    }
-
-    updateCount(count) {
-      const word = count === 1 ? "job" : "jobs"
-      this.countTarget.textContent = `${count} ${word} found`
-    }
-
-    updateUrl(query) {
-      const url = new URL(window.location)
-      if (query) {
-        url.searchParams.set("q", query)
-      } else {
-        url.searchParams.delete("q")
-      }
-      history.replaceState(null, "", url)
-    }
-  }
-
-  application.register("search-filter", SearchFilterController)
-</script>
-
 <h1>ActiveJob Dashboard</h1>
 
 <% @not_preloaded.each do |database, pg_stat| %>
@@ -164,40 +43,40 @@
     <% end %>
   <% end %>
 <% else %>
-  <div data-controller="search-filter" data-search-filter-debounce-value="300" data-search-filter-min-chars-value="2">
+  <div>
     <input type="search"
-           placeholder="Search jobs... (press / to focus)"
-           data-search-filter-target="input"
-           data-action="input->search-filter#onInput"
+           placeholder="filter jobs… (press / to focus)"
+           data-filter-input
+           data-filter-noun="job"
            autofocus
            autocomplete="off">
-    <p data-search-filter-target="count"><%= @jobs.size %> jobs found</p>
+    <p class="dim" data-filter-count><%= pluralize(@jobs.size, "job") %></p>
 
+    <div class="scroll">
     <table>
       <thead>
         <tr>
-          <th>Job Class</th>
-          <th style="text-align: right;">Total Calls</th>
-          <th style="text-align: right;">Unique Queries</th>
-          <th style="text-align: right;">Total Time</th>
+          <th>job class</th>
+          <th class="num">calls</th>
+          <th class="num">unique queries</th>
+          <th class="num">total time</th>
         </tr>
       </thead>
       <tbody>
         <% @jobs.each do |job_name, stats| %>
-          <tr data-search-filter-target="item" data-job-name="<%= job_name.downcase %>">
+          <tr data-filter-value="<%= job_name.downcase %>">
             <td>
-              <%= link_to job_path(ERB::Util.url_encode(job_name)) do %>
-                <span data-search-filter-target="summary"><%= job_name %></span>
-              <% end %>
+              <%= link_to job_name, job_path(ERB::Util.url_encode(job_name)) %>
             </td>
-            <td style="text-align: right; font-family: monospace;"><%= number_with_delimiter(stats[:total_calls]) %></td>
-            <td style="text-align: right; font-family: monospace;"><%= number_with_delimiter(stats[:query_count]) %></td>
-            <td style="text-align: right; font-family: monospace;"><%= format_duration_from_ms(stats[:total_time_ms]) %></td>
+            <td class="num"><%= number_with_delimiter(stats[:total_calls]) %></td>
+            <td class="num"><%= number_with_delimiter(stats[:query_count]) %></td>
+            <td class="num"><%= format_duration_from_ms(stats[:total_time_ms]) %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
+    </div>
 
-    <p data-search-filter-target="empty" hidden>No jobs found matching your search.</p>
+    <p class="dim" data-filter-empty hidden>No jobs match that filter.</p>
   </div>
 <% end %>
