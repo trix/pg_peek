@@ -128,19 +128,26 @@
 <% end %>
 
 <% if @jobs.empty? %>
-  <article aria-label="No jobs found">
-    <header>No jobs found in query statistics</header>
-    <p>Jobs will appear here when:</p>
-    <ol>
-      <li><code>config.active_record.query_log_tags</code> includes <code>:job</code></li>
-      <li>Jobs have executed database queries</li>
-      <li>pg_stat_statements is installed on at least one database</li>
-    </ol>
-    <p>Example configuration in <code>config/application.rb</code>:</p>
-    <pre><code>config.active_record.query_log_tags_enabled = true
+  <%# Only when every database is collecting: alongside the preload instructions
+      this would point at the wrong problem, since there are no statistics at all
+      rather than merely no job queries. %>
+  <% if @not_preloaded.empty? %>
+    <article aria-label="No jobs found">
+      <header>No jobs found in query statistics</header>
+      <p>Jobs will appear here when:</p>
+      <ol>
+        <li><code>config.active_record.query_log_tags</code> includes <code>:job</code></li>
+        <li>Jobs have executed database queries</li>
+        <li>pg_stat_statements is installed on at least one database</li>
+        <li>No statistics have been reset since those jobs last ran &mdash; a
+            PostgreSQL restart clears them too</li>
+      </ol>
+      <p>Example configuration in <code>config/application.rb</code>:</p>
+      <pre><code>config.active_record.query_log_tags_enabled = true
 config.active_record.query_log_tags_format = :sqlcommenter
 config.active_record.query_log_tags = [ :application, :controller, :action, :job ]</code></pre>
-  </article>
+    </article>
+  <% end %>
 <% else %>
   <div data-controller="search-filter" data-search-filter-debounce-value="300" data-search-filter-min-chars-value="2">
     <input type="search"
