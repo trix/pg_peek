@@ -1,6 +1,7 @@
-<%# Draws any report. Pass columns: [keys] and/or limit: n to show a projection. %>
+<%# Draws any report. Pass columns: [keys], rows: [subset] and/or limit: n to show a projection. %>
 <% columns = local_assigns[:columns] ? report.columns.select { |c| local_assigns[:columns].include?(c.key) } : report.columns %>
-<% rows = local_assigns[:limit] ? report.rows.first(local_assigns[:limit]) : report.rows %>
+<% rows = local_assigns[:rows] || report.rows %>
+<% rows = rows.first(local_assigns[:limit]) if local_assigns[:limit] %>
 <div class="scroll">
   <table>
     <thead>

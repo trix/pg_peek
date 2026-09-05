@@ -28,4 +28,11 @@ Rails.application.config.pg_peek.tap do |config|
 
   # Dead tuple ratio threshold (percentage) for warnings.
   # config.dead_tuple_warning_threshold = 10
+
+  # A query running longer than this is called out on the overview.
+  # config.long_query_warning_seconds = 5
+
+  # A session idle in transaction longer than this holds locks and blocks
+  # vacuum, and is called out on the overview.
+  # config.idle_in_transaction_warning_seconds = 60
 end

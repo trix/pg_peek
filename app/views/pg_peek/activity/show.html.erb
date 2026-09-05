@@ -1,0 +1,70 @@
+<% if @refresh %>
+  <% content_for :head do %><meta http-equiv="refresh" content="<%= @refresh %>"><% end %>
+<% end %>
+
+<div class="toolbar">
+  <h1>activity</h1>
+  <small class="dim">
+    captured <%= @captured_at.strftime("%H:%M:%S") %>
+    &middot; refresh:
+    <% PgPeek::ActivityController::REFRESH_INTERVALS.each do |seconds| %>
+      <%= link_to_unless @refresh == seconds, "#{seconds}s", database_activity_path(@database, refresh: seconds, idle: @show_idle ? 1 : nil) do |name| %><b><%= name %></b><% end %>
+    <% end %>
+    <%= link_to_unless @refresh.nil?, "off", database_activity_path(@database, idle: @show_idle ? 1 : nil) do |name| %><b><%= name %></b><% end %>
+    &middot; <kbd>r</kbd> reloads
+  </small>
+</div>
+
+<p class="vitals dim">
+  <span><%= @summary["client_connections"] %> of <%= @summary["max_connections"] %> server connections in use</span>
+  <span>this database: <%= @sessions.active.size %> active</span>
+  <span><%= @sessions.in_transaction.size %> idle in transaction</span>
+  <span><%= @sessions.idle.size %> idle</span>
+  <% if @blocked.any? %><span><%= @blocked.rows.size %> blocked</span><% end %>
+</p>
+
+<% if @blocked.any? %>
+  <article aria-label="Blocked sessions">
+    <header><%= pluralize(@blocked.rows.size, "session") %> waiting for a lock</header>
+    <%= render "pg_peek/reports/report", report: @blocked %>
+    <footer>
+      <small>
+        pg_peek only looks. To end a query: <code>SELECT pg_cancel_backend(pid)</code>;
+        to drop the whole session: <code>SELECT pg_terminate_backend(pid)</code>.
+      </small>
+    </footer>
+  </article>
+<% end %>
+
+<% if @sessions.hidden_queries? %>
+  <article aria-label="Query text hidden">
+    <header>queries of other users are hidden</header>
+    <p>
+      PostgreSQL shows a session's query only to its own user, superusers and
+      members of <code>pg_read_all_stats</code>. pg_peek connects as
+      <code><%= @summary["username"] %></code>:
+    </p>
+    <pre><code>GRANT pg_read_all_stats TO <%= @summary["username"] %>;</code></pre>
+  </article>
+<% end %>
+
+<% visible = @show_idle ? @sessions.rows : @sessions.busy %>
+
+<h2>
+  sessions
+  <small class="dim">
+    <% if @show_idle %>
+      <%= link_to "hide idle", database_activity_path(@database, refresh: @refresh) %>
+    <% elsif @sessions.idle.any? %>
+      <%= @sessions.idle.size %> idle hidden &middot; <%= link_to "show idle", database_activity_path(@database, refresh: @refresh, idle: 1) %>
+    <% end %>
+  </small>
+</h2>
+
+<% if @sessions.empty? %>
+  <p class="dim">No other session is connected to <%= @database.name %>.</p>
+<% elsif visible.empty? %>
+  <p class="dim">Nothing running. Every other session is idle.</p>
+<% else %>
+  <%= render "pg_peek/reports/report", report: @sessions, rows: visible %>
+<% end %>

@@ -15,6 +15,45 @@ if ActiveSupport::TestCase.respond_to?(:fixture_paths=)
 end
 
 class ActiveSupport::TestCase
+  # Activity tests need sessions that are not this one. They are opened with
+  # the pg gem directly so ActiveRecord's pool never sees them, and closed
+  # after each test. A query sent with send_query runs while the test goes on.
+  def open_pg_session
+    config = ActiveRecord::Base.connection_db_config.configuration_hash
+    conn = PG.connect(host: config[:host], port: config[:port], dbname: config[:database],
+                      user: config[:username], password: config[:password])
+    (@extra_sessions ||= []) << conn
+    conn
+  end
+
+  teardown do
+    (@extra_sessions || []).each do |conn|
+      conn.cancel if conn.respond_to?(:cancel)
+      conn.discard_results
+      conn.close
+    rescue PG::Error
+      nil
+    end
+  end
+
+  # pg_stat_activity is a snapshot taken once per transaction, and a test is
+  # one transaction: clear it before each look or the new session never
+  # appears, however long you wait.
+  def wait_for(what, timeout: 5)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+    loop do
+      ActiveRecord::Base.connection.execute("SELECT pg_stat_clear_snapshot()")
+      return if yield
+      flunk "timed out waiting for #{what}" if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+      sleep 0.05
+    end
+  end
+
+  # Tagged the way Rails' query_log_tags writes them.
+  def sleeping_query(seconds = 30, controller: "posts", action: "index")
+    "SELECT pg_sleep(#{seconds}) /*action='#{action}',application='Dummy',controller='#{controller}'*/"
+  end
+
   # The dummy schemas already create the extension; this is the safety net for
   # a test that dropped it and did not put it back.
   def install_pg_stat_statements(database)

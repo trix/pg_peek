@@ -90,6 +90,21 @@ end</code></pre>
   <% end %>
 
   <section class="wide">
+    <h2>activity <%= link_to "now →", database_activity_path(@database) %></h2>
+    <p class="vitals dim">
+      <span><%= @connection_summary["client_connections"] %> of <%= @connection_summary["max_connections"] %> server connections in use</span>
+      <span>this database: <%= @sessions.active.size %> active</span>
+      <span><%= @sessions.in_transaction.size %> idle in transaction</span>
+      <span><%= @sessions.idle.size %> idle</span>
+      <% if @sessions.blocked.any? %><span><%= @sessions.blocked.size %> blocked</span><% end %>
+    </p>
+    <% if @sessions.busy.any? %>
+      <%= render "pg_peek/reports/report", report: @sessions, rows: @sessions.busy,
+                 limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
+    <% end %>
+  </section>
+
+  <section class="wide">
     <h2>tables (<%= @tables.rows.size %>)</h2>
     <input type="search"
            placeholder="filter tables… (press / to focus)"

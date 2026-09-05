@@ -24,6 +24,8 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
     @tables = PgPeek::Reports::Tables.new(database: @database)
     @vitals = @database.vitals
     @stats_reset_at = stats_reset_at
+    @sessions = PgPeek::Reports::Sessions.new(database: @database)
+    @connection_summary = @database.connection_summary
 
     if @pg_stat_statements.usable?
       @endpoints = PgPeek::Reports::Endpoints.new(database: @database)
@@ -61,6 +63,32 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
       if indexes.unused.any?
         items << { text: "#{helpers.pluralize(indexes.unused.size, "unused index")} · #{helpers.number_to_human_size(indexes.unused_bytes)}",
                    href: database_indexes_path(@database) }
+      end
+
+      activity = database_activity_path(@database)
+
+      if @sessions.blocked.any?
+        items << { text: "#{helpers.pluralize(@sessions.blocked.size, "session")} waiting for a lock", href: activity }
+      end
+
+      seconds = PgPeek.config.long_query_warning_seconds
+      long_running = @sessions.long_running(seconds * 1000)
+      if long_running.any?
+        items << { text: "#{helpers.pluralize(long_running.size, "query")} running longer than #{seconds}s, longest #{helpers.format_duration_from_ms(long_running.first["duration_ms"])}",
+                   href: activity }
+      end
+
+      seconds = PgPeek.config.idle_in_transaction_warning_seconds
+      stale = @sessions.stale_transactions(seconds * 1000)
+      if stale.any?
+        items << { text: "#{helpers.pluralize(stale.size, "session")} idle in transaction for over #{seconds}s -- holding locks and blocking vacuum",
+                   href: activity }
+      end
+
+      used = @connection_summary["client_connections"].to_i
+      max = @connection_summary["max_connections"].to_i
+      if max.positive? && used >= max * 0.8
+        items << { text: "#{used} of #{max} connections in use", href: activity }
       end
 
       if @stats_reset_at && @stats_reset_at > 1.hour.ago

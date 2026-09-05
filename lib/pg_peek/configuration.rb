@@ -4,9 +4,12 @@ module PgPeek
     DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD = 10 # percentage
     DEFAULT_OUTLIERS_LIMIT = 20
     DEFAULT_CACHE_HIT_WARNING_THRESHOLD = 99 # percentage
+    DEFAULT_LONG_QUERY_WARNING_SECONDS = 5
+    DEFAULT_IDLE_IN_TRANSACTION_WARNING_SECONDS = 60
 
     attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit,
-                  :cache_hit_warning_threshold, :public_dashboard
+                  :cache_hit_warning_threshold, :long_query_warning_seconds,
+                  :idle_in_transaction_warning_seconds, :public_dashboard
     attr_writer :username, :password
 
     def initialize
@@ -15,6 +18,8 @@ module PgPeek
       @dead_tuple_warning_threshold = DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD
       @outliers_limit = DEFAULT_OUTLIERS_LIMIT
       @cache_hit_warning_threshold = DEFAULT_CACHE_HIT_WARNING_THRESHOLD
+      @long_query_warning_seconds = DEFAULT_LONG_QUERY_WARNING_SECONDS
+      @idle_in_transaction_warning_seconds = DEFAULT_IDLE_IN_TRANSACTION_WARNING_SECONDS
       @public_dashboard = false
     end
 
