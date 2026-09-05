@@ -23,7 +23,7 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
     @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
     @tables = PgPeek::Reports::Tables.new(database: @database)
     @vitals = @database.vitals
-    @stats_reset_at = stats_reset_at
+    @stats_reset_at = @pg_stat_statements.reset_at
     @sessions = PgPeek::Reports::Sessions.new(database: @database)
     @connection_summary = @database.connection_summary
 
@@ -37,11 +37,6 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
   end
 
   private
-    def stats_reset_at
-      value = @pg_stat_statements.reset_at
-      Time.zone.parse(value.to_s) if value.present?
-    end
-
     # Computed, not browsed: the things worth acting on, each linking to where
     # you would act.
     def attention
@@ -93,7 +88,7 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
 
       if @stats_reset_at && @stats_reset_at > 1.hour.ago
         items << { text: "statistics were reset #{helpers.time_ago_in_words(@stats_reset_at)} ago -- figures may not be representative yet",
-                   href: nil }
+                   href: database_path(@database, anchor: "pg_stat_statements") }
       end
 
       items

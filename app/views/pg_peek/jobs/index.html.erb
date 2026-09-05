@@ -1,6 +1,6 @@
 <div class="toolbar">
   <h1>jobs</h1>
-  <small class="dim">stats since <%= format_time_ago(@stats_reset_at) %></small>
+  <small class="dim"><%= stats_since_link(@database, @stats_reset_at) %></small>
 </div>
 
 <% if @report.empty? %>

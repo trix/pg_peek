@@ -4,7 +4,7 @@
   <span>postgres <%= @database.version %></span>
   <% if @pg_stat_statements.usable? %>
     <span>pg_stat_statements <%= @pg_stat_statements.installed_version %></span>
-    <span>stats since <%= format_time_ago(@stats_reset_at) %></span>
+    <span><%= stats_since_link(@database, @stats_reset_at) %></span>
     <span><%= pluralize(number_with_delimiter(@pg_stat_statements.statement_count), "statement") %></span>
   <% end %>
   <% if @vitals["cache_hit_ratio"] %><span>cache hit <%= @vitals["cache_hit_ratio"] %>%</span><% end %>
@@ -80,7 +80,7 @@ end</code></pre>
     </section>
 
     <section class="wide">
-      <h2>slowest queries <%= link_to "all →", database_pg_stat_statements_path(@database) %></h2>
+      <h2>slowest queries <%= link_to "all →", database_queries_path(@database) %></h2>
       <% if @queries.empty? %>
         <p class="dim">No statements recorded yet.</p>
       <% else %>
@@ -121,6 +121,37 @@ end</code></pre>
     <p class="dim" data-filter-empty hidden>No tables match that filter.</p>
   </section>
 </div>
+
+<% if @pg_stat_statements.usable? %>
+  <section id="pg_stat_statements">
+    <h2>pg_stat_statements <%= @pg_stat_statements.installed_version %></h2>
+    <p class="dim">
+      Queries, endpoints and jobs are cumulative since
+      <%= @stats_reset_at.strftime("%Y-%m-%d %H:%M:%S %Z") %> (<%= format_time_ago(@stats_reset_at) %>),
+      <%= pluralize(number_with_delimiter(@pg_stat_statements.statement_count), "statement") %> tracked.
+      A reset starts a fresh window: exact counts and attribution, at the
+      price of the history so far.
+      <% peers = @database.server_peers %>
+      <% if peers.any? %>
+        It also clears <%= peers.map(&:name).to_sentence %>, which
+        <%= peers.one? ? "shares" : "share" %> this server: PostgreSQL keeps
+        one reset time for all of them.
+      <% end %>
+    </p>
+    <%= button_to "reset statistics",
+                  reset_database_pg_stat_statements_path(@database),
+                  method: :delete,
+                  class: "danger",
+                  form_class: "inline",
+                  form: { data: { confirm: "Reset pg_stat_statements? This clears statement statistics for every database on this server." } } %>
+    <% if @pg_stat_statements.outdated? %>
+      <p class="dim">
+        Version <%= @pg_stat_statements.default_version %> is available:
+        <code>ALTER EXTENSION pg_stat_statements UPDATE;</code>
+      </p>
+    <% end %>
+  </section>
+<% end %>
 
 <details>
   <summary>database details</summary>

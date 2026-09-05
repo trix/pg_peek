@@ -8,7 +8,7 @@ class PgPeek::JobsController < PgPeek::ApplicationController
     # Without the job tag no query can be attributed to a job, so an empty
     # dashboard has nothing to do with whether jobs have run.
     @job_tag_configured = query_log_tags.include?(:job)
-    @stats_reset_at = stats_reset_at
+    @stats_reset_at = @pg_stat_statements.reset_at
     @report = PgPeek::Reports::Jobs.new(database: @database)
   end
 
@@ -40,10 +40,5 @@ class PgPeek::JobsController < PgPeek::ApplicationController
       if config.query_log_tags_format == :legacy
         render plain: "Legacy query log tags format is not supported. Please set config.active_record.query_log_tags_format to :sqlcommenter in your Rails configuration.", status: :unprocessable_entity
       end
-    end
-
-    def stats_reset_at
-      value = @pg_stat_statements.reset_at
-      Time.zone.parse(value.to_s) if value.present?
     end
 end

@@ -11,10 +11,10 @@
 
     <%= stylesheet_link_tag "pg_peek/application", media: "all" %>
     <%= javascript_include_tag "pg_peek/application", defer: true %>
-    <%= yield :head %>
   </head>
   <body>
     <main>
+      <% if flash[:notice] %><p class="notice"><%= flash[:notice] %></p><% end %>
       <nav>
         <ul>
           <li><%= link_to "pg_peek", databases_path, class: "wordmark" %></li>
@@ -22,7 +22,7 @@
         <ul>
           <% if @database %>
             <li><%= link_to "overview", database_path(@database) %></li>
-            <li><%= link_to "queries", database_pg_stat_statements_path(@database) %></li>
+            <li><%= link_to "queries", database_queries_path(@database) %></li>
             <li><%= link_to "endpoints", database_endpoints_path(@database) %></li>
             <li><%= link_to "jobs", database_jobs_path(@database) %></li>
             <li><%= link_to "indexes", database_indexes_path(@database) %></li>

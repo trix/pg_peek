@@ -42,6 +42,10 @@ class PgPeek::PgStatStatements
     @installed_version != @default_version
   end
 
+  # Server-wide on purpose. pg_stat_statements_info keeps a single stats_reset
+  # for the whole server and only moves it when every entry is removed, so a
+  # reset scoped to this database would leave "stats since" pointing at the
+  # old time.
   def reset!
     return unless usable?
 
@@ -53,11 +57,11 @@ class PgPeek::PgStatStatements
   def reset_at
     return unless usable?
 
-    result = connection.execute PgPeek::QueryLoader.mark(<<-SQL)
+    value = connection.select_value PgPeek::QueryLoader.mark(<<-SQL)
       SELECT stats_reset FROM pg_stat_statements_info;
     SQL
 
-    result.first["stats_reset"]
+    Time.zone.parse(value.to_s) if value.present?
   end
 
   def outliers

@@ -1,6 +1,6 @@
 <div class="toolbar">
   <h1>endpoints</h1>
-  <small class="dim">stats since <%= format_time_ago(Time.zone.parse(@pg_stat_statements.reset_at.to_s)) %></small>
+  <small class="dim"><%= stats_since_link(@database, @pg_stat_statements.reset_at) %></small>
 </div>
 
 <% if @report.empty? %>
