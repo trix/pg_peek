@@ -43,7 +43,7 @@ class PostEngagementJob < ApplicationJob
     # Cross-reference: find posts with most engagement
     top_referrers = PostView.where.not(referrer: nil)
                             .group(:referrer)
-                            .order("count(*) DESC")
+                            .order(Arel.sql("count(*) DESC"))
                             .limit(5)
                             .count
 

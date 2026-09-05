@@ -101,8 +101,9 @@ class PgPeek::PgStatStatementsTest < ActiveSupport::TestCase
     # The transactional test rolls the drop back afterwards.
     ActiveRecord::Base.connection.execute("DROP EXTENSION IF EXISTS pg_stat_statements")
 
-    expected = analytics.connection.execute("SELECT stats_reset FROM pg_stat_statements_info").first["stats_reset"]
+    expected = analytics.connection.select_value("SELECT stats_reset FROM pg_stat_statements_info")
 
-    assert_equal expected, analytics_stat.reset_at
+    assert_kind_of Time, analytics_stat.reset_at
+    assert_in_delta Time.zone.parse(expected.to_s), analytics_stat.reset_at, 1
   end
 end

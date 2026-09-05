@@ -3,7 +3,7 @@ module PgPeek::ApplicationHelper
   # to their section, since the other database may not have that table or job.
   def switch_database_path(database)
     case controller_name
-    when "pg_stat_statements" then database_pg_stat_statements_path(database)
+    when "queries"            then database_queries_path(database)
     when "endpoints"          then database_endpoints_path(database)
     when "jobs"               then database_jobs_path(database)
     when "indexes"            then database_indexes_path(database)
@@ -96,6 +96,14 @@ module PgPeek::ApplicationHelper
   def format_time_ago(timestamp)
     return "Never" if timestamp.nil?
     time_ago_in_words(timestamp) + " ago"
+  end
+
+  # Every pg_stat_statements figure is cumulative since the last reset. Each
+  # page says so in its header and links to the overview block that resets it.
+  def stats_since_link(database, reset_at)
+    link_to "stats since #{format_time_ago(reset_at)}",
+            database_path(database, anchor: "pg_stat_statements"),
+            title: "figures are cumulative since the last pg_stat_statements reset"
   end
 
   # Format cache hit ratio for inline display

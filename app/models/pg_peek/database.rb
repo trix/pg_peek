@@ -33,6 +33,21 @@ class PgPeek::Database
     @name
   end
 
+  # The other configured databases on the same server, judged by host and
+  # port. Production tends to give each database its own server; review apps
+  # put them all on one, where a server-wide action such as a
+  # pg_stat_statements reset reaches every one of them.
+  def server_peers
+    self.class.all.reject { |other| other.name == name }.select { |other| other.server == server }
+  end
+
+  def server
+    config = self.class.available_postgres_databases.find { |db_config| db_config.name == name }
+    return unless config
+
+    [ config.host.presence || "localhost", config.configuration_hash[:port].presence || 5432 ].map(&:to_s)
+  end
+
   def connection
     connection_class = PgPeek.config.connection_class_for(name)
     connection_class&.connection

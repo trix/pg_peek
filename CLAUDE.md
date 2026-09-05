@@ -56,8 +56,11 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 ### Controllers
 
-- **`DatabasesController`**: Lists databases, shows details (version, extensions), displays tables
-- **`PgStatStatementsController`**: Analyzes slow queries with SQLcommenter tag extraction, resets statistics
+- **`DatabasesController`**: Lists databases, shows the per-database overview (vitals, attention, sections, tables)
+- **`QueriesController`**: Slowest statements from pg_stat_statements
+- **`EndpointsController`, `JobsController`**: Statements grouped by SQLcommenter controller/action and job tags
+- **`IndexesController`, `ActivityController`**: Index usage; live sessions and lock waits
+- **`PgStatStatementsController`**: Resets the extension's statistics
 
 ### Helpers
 

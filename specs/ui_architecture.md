@@ -47,7 +47,14 @@ Two deliberate choices:
 **The statistics window belongs in the header of every page.** "stats since 2h
 14m ago" is the context that makes every number on the page interpretable, and
 its absence has already caused an hour of confused debugging. A restart clears
-`pg_stat_statements`; the UI should never let you forget that.
+`pg_stat_statements`; the UI should never let you forget that. Every such line
+links to the `pg_stat_statements` block at the foot of the overview, the one
+place that resets the counters. A reset is server-wide:
+`pg_stat_statements_info.stats_reset` is a single server-wide value that only
+moves when every entry is removed, so a reset scoped to one database would
+leave "stats since" lying. Production usually gives each database its own
+server and there is nothing to add; review apps share one, and then the block
+names the other configured databases the reset will clear.
 
 **"attention" is computed, not browsed.** It is what separates a tool that tells
 you to do something from a data viewer.

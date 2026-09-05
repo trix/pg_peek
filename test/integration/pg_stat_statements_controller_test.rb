@@ -8,46 +8,23 @@ class PgStatStatementsControllerTest < ActionDispatch::IntegrationTest
     @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
   end
 
-  test "outliers renders the query list when the extension is usable" do
+  test "reset returns to the overview block that owns the statistics" do
     skip_unless_usable(@pg_stat_statements)
 
-    get pg_peek.database_pg_stat_statements_path(@database)
+    # The real reset is server-wide and would wipe the development statistics
+    # on a shared server, so the call is recorded rather than executed.
+    resets = 0
+    @pg_stat_statements.define_singleton_method(:reset!) { resets += 1 }
 
-    assert_response :success
-    assert_select "h1", text: "Outliers"
-    assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']", count: 0
-  end
+    PgPeek::PgStatStatements.stub(:new, @pg_stat_statements) do
+      delete pg_peek.reset_database_pg_stat_statements_path(@database)
 
-  test "outliers renders preload instructions when the module is not preloaded" do
-    not_preloaded = PgPeek::PgStatStatements.new(database: @database)
-    not_preloaded.define_singleton_method(:preloaded?) { false }
-    not_preloaded.define_singleton_method(:shared_preload_libraries) { "" }
-
-    PgPeek::PgStatStatements.stub(:new, not_preloaded) do
-      get pg_peek.database_pg_stat_statements_path(@database)
+      assert_redirected_to pg_peek.database_path(@database, anchor: "pg_stat_statements")
+      follow_redirect!
     end
 
-    assert_response :success
-    assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']" do
-      assert_select "header", text: "pg_stat_statements is not loaded"
-      assert_select "code", text: /shared_preload_libraries = 'pg_stat_statements'/
-    end
-    assert_select "table", count: 0
-  end
-
-  test "database show links to pg_stat_statements only when it is usable" do
-    not_preloaded = PgPeek::PgStatStatements.new(database: @database)
-    not_preloaded.define_singleton_method(:preloaded?) { false }
-    not_preloaded.define_singleton_method(:shared_preload_libraries) { "" }
-
-    PgPeek::PgStatStatements.stub(:new, not_preloaded) do
-      get pg_peek.database_path(@database)
-    end
-
-    assert_response :success
-    assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']"
-    # The nav still offers the section; the body must not link to a page that
-    # would only repeat the instructions already shown here.
-    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", text: "pg_stat_statements", count: 0
+    assert_equal 1, resets
+    assert_select "p.notice", text: /has been reset/
+    assert_select "section#pg_stat_statements form[action='#{pg_peek.reset_database_pg_stat_statements_path(@database)}']"
   end
 end

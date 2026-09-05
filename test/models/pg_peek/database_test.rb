@@ -5,6 +5,13 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
     @database = PgPeek::Database.find("primary")
   end
 
+  test "server_peers lists the other configured databases on the same host and port" do
+    peers = @database.server_peers.map(&:name)
+
+    assert_includes peers, "analytics"
+    assert_not_includes peers, "primary"
+  end
+
   test "version_full returns full PostgreSQL version string" do
     version_full = @database.version_full
 
