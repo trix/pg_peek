@@ -3,45 +3,8 @@
   <small class="dim"><%= stats_since_link(@database, @pg_stat_statements.reset_at) %></small>
 </div>
 
-<% if @outliers.present? %>
-  <% max_calls = @outliers.map { |o| o["ncalls"].to_s.gsub(/[^0-9]/, "").to_i }.max %>
-  <div class="scroll">
-    <table>
-      <thead>
-        <tr>
-          <th title="Call intensity">calls</th>
-          <th>time</th>
-          <th>query</th>
-          <th title="SQLcommenter metadata"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @outliers.each do |outlier| %>
-          <% comment = extract_comment(outlier["query"]) %>
-          <% calls_num = outlier["ncalls"].to_s.gsub(/[^0-9]/, "").to_i %>
-          <tr>
-            <td class="intensity" title="<%= outlier["ncalls"] %> calls">
-              <%= intensity_bar(calls_num, max_calls) %>
-            </td>
-            <td class="nowrap stack">
-              <div><strong><%= format_duration(outlier["total_exec_time"]) %></strong></div>
-              <div class="dim"><%= outlier["prop_exec_time"] %></div>
-              <div class="dim">avg <%= outlier["avg_exec_ms"] %>ms</div>
-            </td>
-            <td>
-              <code class="sql"><%= strip_sqlcommenter(outlier["query"]).squish %></code>
-            </td>
-            <td class="dim">
-              <% if comment %>
-                <% comment_text = sqlcommenter_to_hash(comment).map { |k, v| "#{k}: #{CGI.unescape(v.to_s.gsub(/^'|'$/, ''))}" }.join("\n") %>
-                <span title="<%= comment_text %>">◆</span>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-<% else %>
+<% if @queries.empty? %>
   <p class="dim">No statements recorded since the last reset.</p>
+<% else %>
+  <%= render "pg_peek/reports/report", report: @queries %>
 <% end %>

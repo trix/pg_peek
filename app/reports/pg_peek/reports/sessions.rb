@@ -81,23 +81,8 @@ class PgPeek::Reports::Sessions < PgPeek::Report
       "#{row["wait_event_type"].downcase}: #{row["wait_event"]}"
     end
 
-    TAG = /(\w+)='([^']*)'/
-
     def source_for(row)
-      tags = tags_for(row["query"])
-      controller = tags["namespaced_controller"] || tags["controller"]
-
-      if tags["job"].present?
-        tags["job"]
-      elsif controller.present?
-        [ controller, tags["action"] ].compact_blank.join("#")
-      else
-        row["application_name"].presence || ""
-      end
-    end
-
-    def tags_for(query)
-      comment = query.to_s[%r{/\*([^*]*=[^*]*)\*/}, 1] or return {}
-      comment.scan(TAG).to_h { |key, value| [ key, CGI.unescape(value) ] }
+      tags = PgPeek::SqlComment.tags(row["query"])
+      PgPeek::SqlComment.label(tags) || row["application_name"].presence || ""
     end
 end

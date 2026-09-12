@@ -1,6 +1,7 @@
 require "test_helper"
 
 class PgPeek::ApplicationHelperTest < ActionView::TestCase
+  include PgPeek::Engine.routes.url_helpers
   include PgPeek::ApplicationHelper
 
   # format_rate tests
@@ -111,6 +112,31 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
   test "format_inline_cache_stats shows dashes for both nil" do
     result = format_inline_cache_stats(nil, nil)
     assert_equal "H: - I: -", result
+  end
+
+  # sqlcommenter_href tests
+
+  test "sqlcommenter_href links a job tag to its own page" do
+    database = PgPeek::Database.find("primary")
+
+    result = sqlcommenter_href(database, { "job" => "PostAnalyticsJob" })
+
+    assert_equal database_job_path(database, "PostAnalyticsJob"), result
+  end
+
+  test "sqlcommenter_href links a controller tag to the endpoints list" do
+    database = PgPeek::Database.find("primary")
+
+    result = sqlcommenter_href(database, { "controller" => "posts", "action" => "index" })
+
+    assert_equal database_endpoints_path(database), result
+  end
+
+  test "sqlcommenter_href returns nil when there is nothing to link to" do
+    database = PgPeek::Database.find("primary")
+
+    assert_nil sqlcommenter_href(database, {})
+    assert_nil sqlcommenter_href(database, { "application" => "Dummy" })
   end
 
   # chart_icon_svg tests

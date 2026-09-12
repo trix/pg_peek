@@ -12,8 +12,6 @@ module PgPeek::ApplicationHelper
     end
   end
 
-  KNOWN_KEYS = %w[application controller namespaced_controller action job].freeze
-
   # example sql comment: /*action='show',application='Trmz',namespaced_controller='staff%2Fprocesses%2Fprocesses'*/
 
   SQLCOMMENTER_PATTERN = %r{
@@ -32,18 +30,16 @@ module PgPeek::ApplicationHelper
     sql.gsub(SQLCOMMENTER_PATTERN, "").strip
   end
 
-  def extract_comment(sql)
-    comment_value = sql.scan(SQLCOMMENTER_PATTERN).first&.squish
+  # Where a query's SQLcommenter tags point, if anywhere: a job's own page,
+  # or the endpoints list for a controller/action (there is no per-endpoint
+  # page to link into yet, so this lands on the list rather than one row of it).
+  def sqlcommenter_href(database, tags)
+    return database_job_path(database, tags["job"]) if tags["job"].present?
 
-    # strip opening and closing comment markers from the SQL comment
-    comment_value&.gsub(/^\/\*/, "")&.gsub(/\*\/$/, "")
-  end
+    controller = tags["namespaced_controller"] || tags["controller"]
+    return database_endpoints_path(database) if controller.present?
 
-  def sqlcommenter_to_hash(comment)
-    comment.split(",").each_with_object({}) do |pair, hash|
-      key, value = pair.split("=")
-      hash[key] = value
-    end
+    nil
   end
 
   # Format a rate with auto-scaled units based on magnitude

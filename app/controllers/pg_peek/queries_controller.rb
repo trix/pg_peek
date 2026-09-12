@@ -8,6 +8,6 @@ class PgPeek::QueriesController < PgPeek::ApplicationController
     # which case querying its views raises instead of returning rows.
     return render "pg_peek/pg_stat_statements/not_preloaded" unless @pg_stat_statements.usable?
 
-    @outliers = @pg_stat_statements.outliers
+    @queries = PgPeek::Reports::Queries.new(database: @database)
   end
 end

@@ -12,7 +12,7 @@ module PgPeek::ReportHelper
     when :duration     then duration_cell(interval_to_ms(value))
     when :percent      then "#{value}%"
     when :ratio        then "~#{value}"
-    when :sql          then tag.code(strip_sqlcommenter(value.to_s).squish, class: "sql")
+    when :sql          then sql_cell(report, value.to_s)
     when :intensity    then intensity_bar(value.to_f, report.max_for(column))
     else value.to_s
     end
@@ -21,6 +21,32 @@ module PgPeek::ReportHelper
   # The compact figure is what you scan; the exact one is a hover away.
   def duration_cell(ms)
     tag.span(format_duration_from_ms(ms), title: "#{number_with_delimiter(ms.round(1))} ms")
+  end
+
+  # The SQL text, plus -- when SQLcommenter tagged it -- what issued it (a
+  # link into the page that already aggregates this exact query across every
+  # call site) and every raw tag behind a disclosure, for the rest.
+  def sql_cell(report, sql)
+    code = tag.code(strip_sqlcommenter(sql).squish, class: "sql")
+    tags = PgPeek::SqlComment.tags(sql)
+    return code if tags.empty?
+
+    safe_join([ code, sql_source(report, tags), sql_tags(tags) ].compact)
+  end
+
+  def sql_source(report, tags)
+    label = PgPeek::SqlComment.label(tags)
+    return nil unless label
+
+    href = report.database && sqlcommenter_href(report.database, tags)
+    tag.div(safe_join([ "→ ", href ? link_to(label, href) : label ]), class: "dim")
+  end
+
+  def sql_tags(tags)
+    tag.details(safe_join([
+      tag.summary("tags"),
+      tag.pre(tags.map { |key, value| "#{key}: #{value}" }.join("\n"))
+    ]), class: "tags")
   end
 
   def cell_class(column)

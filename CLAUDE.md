@@ -71,13 +71,15 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 - **`PgStatStatements`** (`app/models/pg_peek/pg_stat_statements.rb`): Wraps the PostgreSQL `pg_stat_statements` extension. Checks installation status, installs/upgrades the extension, fetches outliers (slowest queries) and per-job/endpoint breakdowns, resets statistics.
 
+- **`SqlComment`** (`app/models/pg_peek/sql_comment.rb`): Parses a query's trailing SQLcommenter comment (`/*controller='posts',action='index'*/`) into a tags hash (`.tags`) and reduces it to what issued the query (`.label`: a job name, or `controller#action`). The one parser both the Sessions report and the view layer use, rather than two that used to disagree.
+
 ### Reports
 
 Every angle pg_peek offers - queries, endpoints, jobs, tables, indexes, sessions, the database list itself - is a `PgPeek::Report` subclass (`app/reports/pg_peek/`) rather than bespoke controller-plus-view code: a report declares its `column`s (`PgPeek::Column`: key, header, alignment, format) and a `fetch_rows` returning hashes keyed by column name, usually straight from a `.sql` file. The same declaration can drive the HTML table or, e.g., a terminal renderer.
 
 Concrete reports: `Databases`, `Tables`, `Queries` (and `JobQueries < Queries`, scoped to one job class), `Endpoints`, `Jobs`, `Indexes`, `Sessions`, `Blocked` (sessions waiting on a lock, built from `Sessions` rather than a second `pg_stat_activity` snapshot).
 
-`PgPeek::ReportHelper#format_cell` turns a `Report::Row` cell into markup based on its column's `format` (`:number`, `:duration_ms`, `:duration`, `:percent`, `:ratio`, `:sql`, `:intensity`); `:intensity` needs `report.max_for(column)` since it renders as a bar relative to the largest value in that column.
+`PgPeek::ReportHelper#format_cell` turns a `Report::Row` cell into markup based on its column's `format` (`:number`, `:duration_ms`, `:duration`, `:percent`, `:ratio`, `:sql`, `:intensity`); `:intensity` needs `report.max_for(column)` since it renders as a bar relative to the largest value in that column. A `:sql` cell also resolves its SQLcommenter tags via `PgPeek::SqlComment`: when there's a label, a link line underneath (a job's own `/jobs/:job_class` page, or the `/endpoints` list for a controller/action - there is no per-endpoint page to link into yet); either way, every raw tag sits behind a `<details>` disclosure for the full dump.
 
 ### Query Loading
 
@@ -94,7 +96,7 @@ Raw SQL lives under `app/queries/pg_peek/pgNN/**/*.sql`, one directory per major
 
 ### Helpers
 
-- **`ApplicationHelper`**: SQLcommenter parsing (`strip_sqlcommenter`, `extract_comment`, `sqlcommenter_to_hash`) plus display formatting used across views - `format_duration`/`format_duration_from_ms` (unit auto-scales: `210ms`, `1.20s`, `2m 05s`), `format_rate`, `format_number`, `format_percentage`, `format_time_ago`, `intensity_bar`, `switch_database_path` (where the current section lives when switching databases).
+- **`ApplicationHelper`**: `strip_sqlcommenter` (removes the trailing comment before displaying SQL) and `sqlcommenter_href` (where a parsed tags hash points, via `PgPeek::SqlComment`) plus display formatting used across views - `format_duration`/`format_duration_from_ms` (unit auto-scales: `210ms`, `1.20s`, `2m 05s`), `format_rate`, `format_number`, `format_percentage`, `format_time_ago`, `intensity_bar`, `switch_database_path` (where the current section lives when switching databases).
 - **`ReportHelper`**: Renders `Report`/`Column` cells (`format_cell`, `cell_class`) - see Reports above.
 
 ### URL structure

@@ -21,6 +21,27 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{pg_peek.database_path(@database, anchor: "pg_stat_statements")}']", text: /stats since/
   end
 
+  test "index links a query's SQLcommenter tags to their source and shows the raw tags" do
+    tagged = PgPeek::PgStatStatements.new(database: @database)
+    tagged.define_singleton_method(:usable?) { true }
+    tagged.define_singleton_method(:outliers) do
+      [ {
+        "ncalls" => "5", "total_exec_time" => "00:00:00.01", "prop_exec_time" => "100.0%",
+        "avg_exec_ms" => "2",
+        "query" => "SELECT 1 /*controller='posts',action='index'*/"
+      } ]
+    end
+
+    PgPeek::PgStatStatements.stub(:new, tagged) do
+      get pg_peek.database_queries_path(@database)
+    end
+
+    assert_response :success
+    assert_select "a[href='#{pg_peek.database_endpoints_path(@database)}']", text: "posts#index"
+    assert_select "details.tags summary", text: "tags"
+    assert_select "details.tags pre", text: /controller: posts/
+  end
+
   test "index renders preload instructions when the module is not preloaded" do
     not_preloaded = PgPeek::PgStatStatements.new(database: @database)
     not_preloaded.define_singleton_method(:preloaded?) { false }

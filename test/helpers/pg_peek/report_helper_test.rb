@@ -1,6 +1,7 @@
 require "test_helper"
 
 class PgPeek::ReportHelperTest < ActionView::TestCase
+  include PgPeek::Engine.routes.url_helpers
   include PgPeek::ReportHelper
   include PgPeek::ApplicationHelper
 
@@ -16,7 +17,9 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
       [ { "name" => "A", "calls" => "1234", "total_time" => "2500", "share" => "40.0",
           "query" => "SELECT 1 /*job='X'*/", "weight" => "10" },
         { "name" => "B", "calls" => "7", "total_time" => "0", "share" => "1.0",
-          "query" => "SELECT 2", "weight" => "5" } ]
+          "query" => "SELECT 2 /*controller='posts',action='index'*/", "weight" => "5" },
+        { "name" => "C", "calls" => "3", "total_time" => "0", "share" => "0.0",
+          "query" => "SELECT 3", "weight" => "1" } ]
     end
   end
 
@@ -44,6 +47,36 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
   test "strips sqlcommenter from sql cells" do
     assert_includes cell(:query, 0), "SELECT 1"
     assert_not_includes cell(:query, 0), "job='X'"
+  end
+
+  test "links a sql cell's job tag to the job's own page" do
+    markup = cell(:query, 0)
+
+    assert_includes markup, "→"
+    assert_includes markup, %(href="#{database_job_path(@report.database, "X")}")
+    assert_includes markup, ">X<"
+  end
+
+  test "links a sql cell's controller tag to the endpoints list" do
+    markup = cell(:query, 1)
+
+    assert_includes markup, %(href="#{database_endpoints_path(@report.database)}")
+    assert_includes markup, ">posts#index<"
+  end
+
+  test "shows the full raw tags behind a details disclosure" do
+    markup = cell(:query, 0)
+
+    assert_includes markup, "<details"
+    assert_includes markup, "<summary>tags</summary>"
+    assert_includes markup, "job: X"
+  end
+
+  test "sql cells without a sqlcommenter tag show no source or disclosure" do
+    markup = cell(:query, 2)
+
+    assert_not_includes markup, "→"
+    assert_not_includes markup, "<details"
   end
 
   test "scales an intensity cell against the column maximum" do
