@@ -139,17 +139,6 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     assert_nil sqlcommenter_href(database, { "application" => "Dummy" })
   end
 
-  # chart_icon_svg tests
-  test "chart_icon_svg returns svg element" do
-    result = chart_icon_svg
-    assert_match(/<svg.*<\/svg>/, result)
-  end
-
-  test "chart_icon_svg is html_safe" do
-    result = chart_icon_svg
-    assert result.html_safe?
-  end
-
   # duration tests: the unit scales with magnitude so values stay narrow and
   # comparable at a glance -- 210ms next to 1.20s, not 00:00:00.210 next to
   # 00:00:01.204.

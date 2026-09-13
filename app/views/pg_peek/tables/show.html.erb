@@ -1,139 +1,128 @@
-<nav aria-label="Breadcrumb">
-  <%= link_to "Databases", databases_path %> &gt;
-  <%= link_to @database.name, database_path(@database) %> &gt;
-  <strong><%= @table.name %></strong>
-</nav>
-
-<h1><%= @table.name %> <%= chart_icon_svg %></h1>
+<div class="toolbar">
+  <h1><%= @table.name %></h1>
+  <%= link_to "← tables", database_path(@database, anchor: "tables") %>
+</div>
 
 <% seconds_elapsed = @table.seconds_since_reset %>
 
-<article aria-label="Cache Performance">
-  <header>Cache Performance</header>
+<section>
+  <h2>cache performance</h2>
   <table>
     <tbody>
       <tr>
-        <th>Heap Cache Hit</th>
+        <th>heap cache hit</th>
         <td><%= format_percentage(@table.heap_cache_hit_ratio) %></td>
       </tr>
       <tr>
-        <th>Index Cache Hit</th>
+        <th>index cache hit</th>
         <td><%= format_percentage(@table.index_cache_hit_ratio) %></td>
       </tr>
       <tr>
-        <th>Toast Cache Hit</th>
+        <th>toast cache hit</th>
         <td><%= format_percentage(@table.toast_cache_hit_ratio) %></td>
       </tr>
       <tr>
-        <th>Toast Index Cache Hit</th>
+        <th>toast index cache hit</th>
         <td><%= format_percentage(@table.toast_index_cache_hit_ratio) %></td>
       </tr>
     </tbody>
   </table>
-</article>
+</section>
 
-<article aria-label="Row Activity">
-  <header>Row Activity</header>
+<section>
+  <h2>row activity</h2>
   <table>
     <tbody>
       <tr>
-        <th>Estimated Rows</th>
+        <th>estimated rows</th>
         <td><%= format_number(@table.row_estimate) %></td>
       </tr>
       <tr>
-        <th>Sequential Scans</th>
+        <th>sequential scans</th>
         <td>
           <%= format_number(@table.seq_scan) %>
-          <% if @table.seq_scan_percentage %>
-            (<%= @table.seq_scan_percentage %>%)
-          <% end %>
+          <% if @table.seq_scan_percentage %><span class="dim">(<%= @table.seq_scan_percentage %>%)</span><% end %>
         </td>
       </tr>
       <tr>
-        <th>Index Scans</th>
+        <th>index scans</th>
         <td>
           <%= format_number(@table.idx_scan) %>
-          <% if @table.idx_scan_percentage %>
-            (<%= @table.idx_scan_percentage %>%)
-          <% end %>
+          <% if @table.idx_scan_percentage %><span class="dim">(<%= @table.idx_scan_percentage %>%)</span><% end %>
         </td>
       </tr>
       <tr>
-        <th>Index Usage</th>
+        <th>index usage</th>
         <td><%= format_percentage(@table.index_usage_percentage) %></td>
       </tr>
       <tr>
-        <th>Rows Fetched</th>
+        <th>rows fetched</th>
         <td><%= format_count_with_rate(@table.rows_fetched, seconds_elapsed) %></td>
       </tr>
       <tr>
-        <th>Rows Inserted</th>
+        <th>rows inserted</th>
         <td><%= format_count_with_rate(@table.rows_inserted, seconds_elapsed) %></td>
       </tr>
       <tr>
-        <th>Rows Updated</th>
+        <th>rows updated</th>
         <td><%= format_count_with_rate(@table.rows_updated, seconds_elapsed) %></td>
       </tr>
       <tr>
-        <th>Rows Deleted</th>
+        <th>rows deleted</th>
         <td><%= format_count_with_rate(@table.rows_deleted, seconds_elapsed) %></td>
       </tr>
       <tr>
-        <th>Live Tuples</th>
+        <th>live tuples</th>
         <td><%= format_number(@table.live_tuples) %></td>
       </tr>
       <tr>
-        <th>Dead Tuples</th>
+        <th>dead tuples</th>
         <td>
           <%= format_number(@table.dead_tuples) %>
-          <% if @table.dead_tuple_ratio %>
-            (<%= @table.dead_tuple_ratio %>% of total)
-          <% end %>
-          <% if @table.dead_tuple_warning? %>
-            <br><small><em>Consider running VACUUM</em></small>
-          <% end %>
+          <% if @table.dead_tuple_ratio %><span class="dim">(<%= @table.dead_tuple_ratio %>% of total)</span><% end %>
+          <% if @table.dead_tuple_warning? %><br><span class="warn">consider running VACUUM</span><% end %>
         </td>
       </tr>
     </tbody>
   </table>
-</article>
+</section>
 
-<article aria-label="Maintenance">
-  <header>Maintenance</header>
+<section>
+  <h2>maintenance</h2>
   <table>
     <tbody>
       <tr>
-        <th>Last Vacuum</th>
+        <th>last vacuum</th>
         <td><%= format_time_ago(@table.last_vacuum) %></td>
       </tr>
       <tr>
-        <th>Last Autovacuum</th>
+        <th>last autovacuum</th>
         <td><%= format_time_ago(@table.last_autovacuum) %></td>
       </tr>
       <tr>
-        <th>Last Analyze</th>
+        <th>last analyze</th>
         <td><%= format_time_ago(@table.last_analyze) %></td>
       </tr>
       <tr>
-        <th>Last Autoanalyze</th>
+        <th>last autoanalyze</th>
         <td><%= format_time_ago(@table.last_autoanalyze) %></td>
       </tr>
       <tr>
-        <th>Vacuum Count</th>
+        <th>vacuum count</th>
         <td><%= format_number(@table.vacuum_count) %></td>
       </tr>
       <tr>
-        <th>Autovacuum Count</th>
+        <th>autovacuum count</th>
         <td><%= format_number(@table.autovacuum_count) %></td>
       </tr>
       <tr>
-        <th>Analyze Count</th>
+        <th>analyze count</th>
         <td><%= format_number(@table.analyze_count) %></td>
       </tr>
       <tr>
-        <th>Autoanalyze Count</th>
+        <th>autoanalyze count</th>
         <td><%= format_number(@table.autoanalyze_count) %></td>
       </tr>
     </tbody>
   </table>
-</article>
+</section>

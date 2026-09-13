@@ -177,9 +177,23 @@ tbody td {
 
 tbody tr:hover td { background: var(--panel); }
 
+/* A table of label/value pairs (e.g. the table detail page): the row header
+   reads like a column header -- dim, plain weight -- and its value lines up
+   right like every other figure. */
+tbody th {
+  text-align: left;
+  font-weight: 400;
+  color: var(--dim);
+  white-space: nowrap;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+}
+tbody th + td { text-align: right; }
+
 .num { text-align: right; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
 .dim { color: var(--dim); }
+.warn { color: var(--warn); }
 .intensity { white-space: nowrap; }
 .bar { letter-spacing: 0.08em; }
 .bar-on { color: var(--accent); }

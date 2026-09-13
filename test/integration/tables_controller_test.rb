@@ -9,64 +9,42 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     get pg_peek.database_table_path(@database, "posts")
 
     assert_response :success
-    assert_select "h1", text: /posts/
-    assert_select "article[aria-label='Cache Performance']"
-    assert_select "article[aria-label='Row Activity']"
-    assert_select "article[aria-label='Maintenance']"
-  end
-
-  test "show displays breadcrumb navigation" do
-    get pg_peek.database_table_path(@database, "posts")
-
-    assert_response :success
-    assert_select "nav[aria-label='Breadcrumb']" do
-      assert_select "a", text: "Databases"
-      assert_select "a", text: @database.name
-      assert_select "strong", text: "posts"
-    end
+    assert_select "h1", text: "posts"
+    assert_select "a[href='#{pg_peek.database_path(@database, anchor: "tables")}']", text: /tables/
   end
 
   test "show displays cache performance section" do
     get pg_peek.database_table_path(@database, "posts")
 
     assert_response :success
-    assert_select "article[aria-label='Cache Performance']" do
-      assert_select "th", text: "Heap Cache Hit"
-      assert_select "th", text: "Index Cache Hit"
-      assert_select "th", text: "Toast Cache Hit"
-      assert_select "th", text: "Toast Index Cache Hit"
-    end
+    assert_select "h2", text: "cache performance"
+    assert_select "th", text: "heap cache hit"
+    assert_select "th", text: "index cache hit"
+    assert_select "th", text: "toast cache hit"
+    assert_select "th", text: "toast index cache hit"
   end
 
   test "show displays row activity section" do
     get pg_peek.database_table_path(@database, "posts")
 
     assert_response :success
-    assert_select "article[aria-label='Row Activity']" do
-      assert_select "th", text: "Estimated Rows"
-      assert_select "th", text: "Sequential Scans"
-      assert_select "th", text: "Index Scans"
-      assert_select "th", text: "Live Tuples"
-      assert_select "th", text: "Dead Tuples"
-    end
+    assert_select "h2", text: "row activity"
+    assert_select "th", text: "estimated rows"
+    assert_select "th", text: "sequential scans"
+    assert_select "th", text: "index scans"
+    assert_select "th", text: "live tuples"
+    assert_select "th", text: "dead tuples"
   end
 
   test "show displays maintenance section" do
     get pg_peek.database_table_path(@database, "posts")
 
     assert_response :success
-    assert_select "article[aria-label='Maintenance']" do
-      assert_select "th", text: "Last Vacuum"
-      assert_select "th", text: "Last Autovacuum"
-      assert_select "th", text: "Last Analyze"
-      assert_select "th", text: "Last Autoanalyze"
-    end
-  end
-
-  test "show includes link to filtered pg_stat_statements" do
-    get pg_peek.database_table_path(@database, "posts")
-
-    assert_response :success
+    assert_select "h2", text: "maintenance"
+    assert_select "th", text: "last vacuum"
+    assert_select "th", text: "last autovacuum"
+    assert_select "th", text: "last analyze"
+    assert_select "th", text: "last autoanalyze"
   end
 
   test "show returns 404 for non-existent table" do
@@ -83,8 +61,6 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     get pg_peek.database_path(@database)
 
     assert_response :success
-    # The list used to render the table name and an icon as two separate links
-    # to the same page; one link per row now carries the name itself.
     assert_select "a[href='#{pg_peek.database_table_path(@database, 'posts')}']", text: "posts"
   end
 end
