@@ -58,9 +58,14 @@
     var input = document.querySelector("[data-filter-input]");
     if (!input) return;
 
-    var items = Array.prototype.slice.call(document.querySelectorAll("[data-filter-value]"));
-    var count = document.querySelector("[data-filter-count]");
-    var empty = document.querySelector("[data-filter-empty]");
+    // Scoped to the nearest [data-filter] ancestor when there is one, so a
+    // page with several report tables -- the overview, with endpoints, jobs,
+    // queries and tables all on it -- filters only the one the input actually
+    // belongs to, rather than every row on the page.
+    var scope = input.closest("[data-filter]") || document;
+    var items = Array.prototype.slice.call(scope.querySelectorAll("[data-filter-value]"));
+    var count = scope.querySelector("[data-filter-count]");
+    var empty = scope.querySelector("[data-filter-empty]");
     var noun = input.dataset.filterNoun || "row";
     var timer;
 
