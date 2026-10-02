@@ -55,12 +55,15 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
       end
 
       # Scan counts restart at zero on a statistics reset, so right after one
-      # every index looks unused.
+      # every index looks unused. Small ones cost too little to act on; the
+      # indexes page still lists them all.
       reset_at = @database.stats_reset_at
       if reset_at.nil? || reset_at < PgPeek.config.unused_index_min_stats_age.ago
-        indexes = PgPeek::Reports::Indexes.new(database: @database)
-        if indexes.unused.any?
-          items << { text: "#{helpers.pluralize(indexes.unused.size, "unused index")} · #{helpers.number_to_human_size(indexes.unused_bytes)}",
+        unused = PgPeek::Reports::Indexes.new(database: @database).unused
+                   .select { |row| row["size_bytes"].to_i >= PgPeek.config.unused_index_min_size }
+        if unused.any?
+          bytes = unused.sum { |row| row["size_bytes"].to_i }
+          items << { text: "#{helpers.pluralize(unused.size, "unused index")} · #{helpers.number_to_human_size(bytes)}",
                      href: database_indexes_path(@database) }
         end
       end

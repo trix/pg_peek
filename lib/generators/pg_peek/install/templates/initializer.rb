@@ -34,6 +34,10 @@ Rails.application.config.pg_peek.tap do |config|
   # before calling unused indexes out.
   # config.unused_index_min_stats_age = 1.day
 
+  # Unused indexes smaller than this (in bytes) are left out of the overview;
+  # the indexes page still lists them all.
+  # config.unused_index_min_size = 1.megabyte
+
   # A query running longer than this is called out on the overview.
   # config.long_query_warning_seconds = 5
 

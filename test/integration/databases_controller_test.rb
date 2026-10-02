@@ -65,11 +65,30 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
     database.define_singleton_method(:stats_reset_at) { 2.days.ago }
 
-    PgPeek::Database.stub(:find, database) do
-      get pg_peek.database_path(database)
+    # Any real index is at least one page, so a 1-byte floor counts it.
+    with_unused_index_min_size(1) do
+      PgPeek::Database.stub(:find, database) do
+        get pg_peek.database_path(database)
+      end
     end
 
     assert_select "ul.attention li a[href='#{pg_peek.database_indexes_path(database)}']", text: /unused ind/
+  end
+
+  test "show leaves unused indexes below the size floor out of attention" do
+    database = PgPeek::Database.find("primary")
+    database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
+    database.define_singleton_method(:stats_reset_at) { 2.days.ago }
+    size = database.connection.select_value("SELECT pg_relation_size('index_posts_on_body_for_test')").to_i
+
+    with_unused_index_min_size(size + 1) do
+      PgPeek::Database.stub(:find, database) do
+        get pg_peek.database_path(database)
+      end
+    end
+
+    assert_response :success
+    assert_select "ul.attention li a[href='#{pg_peek.database_indexes_path(database)}']", count: 0
   end
 
   test "show leaves unused indexes out while statistics are young" do
@@ -77,8 +96,10 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
     database.define_singleton_method(:stats_reset_at) { 2.hours.ago }
 
-    PgPeek::Database.stub(:find, database) do
-      get pg_peek.database_path(database)
+    with_unused_index_min_size(1) do
+      PgPeek::Database.stub(:find, database) do
+        get pg_peek.database_path(database)
+      end
     end
 
     assert_response :success
@@ -115,6 +136,15 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def with_unused_index_min_size(bytes)
+    config = Rails.application.config.pg_peek
+    original = config.unused_index_min_size
+    config.unused_index_min_size = bytes
+    yield
+  ensure
+    config.unused_index_min_size = original
+  end
 
   def with_connections(connections)
     config = Rails.application.config.pg_peek

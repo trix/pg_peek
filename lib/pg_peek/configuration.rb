@@ -9,10 +9,12 @@ module PgPeek
     DEFAULT_LONG_QUERY_WARNING_SECONDS = 5
     DEFAULT_IDLE_IN_TRANSACTION_WARNING_SECONDS = 60
     DEFAULT_UNUSED_INDEX_MIN_STATS_AGE = 1.day
+    DEFAULT_UNUSED_INDEX_MIN_SIZE = 1.megabyte
 
     attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit,
                   :cache_hit_warning_threshold, :long_query_warning_seconds,
-                  :idle_in_transaction_warning_seconds, :unused_index_min_stats_age, :public_dashboard
+                  :idle_in_transaction_warning_seconds, :unused_index_min_stats_age,
+                  :unused_index_min_size, :public_dashboard
     attr_writer :username, :password
 
     def initialize
@@ -24,6 +26,7 @@ module PgPeek
       @long_query_warning_seconds = DEFAULT_LONG_QUERY_WARNING_SECONDS
       @idle_in_transaction_warning_seconds = DEFAULT_IDLE_IN_TRANSACTION_WARNING_SECONDS
       @unused_index_min_stats_age = DEFAULT_UNUSED_INDEX_MIN_STATS_AGE
+      @unused_index_min_size = DEFAULT_UNUSED_INDEX_MIN_SIZE
       @public_dashboard = false
     end
 
