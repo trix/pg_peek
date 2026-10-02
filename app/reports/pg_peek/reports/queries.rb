@@ -2,7 +2,8 @@
 class PgPeek::Reports::Queries < PgPeek::Report
   title "Queries"
 
-  column :calls, align: :right, format: :intensity, title: "Call count relative to the other queries listed"
+  column :calls, align: :right, format: :number, bar: true,
+                 title: "Call count; the bar compares it with the other queries listed"
   column :total_exec_time, header: "db time", align: :right, format: :duration
   column :prop_exec_time, header: "share", align: :right
   column :avg_exec_ms, header: "avg", align: :right, format: :duration_ms

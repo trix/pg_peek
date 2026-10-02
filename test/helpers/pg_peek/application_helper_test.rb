@@ -181,6 +181,23 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     assert_equal "1h 12m", format_duration_from_ms(4_320_000)
   end
 
+  test "format_duration_from_ms shows anything under a millisecond as <1ms" do
+    assert_equal "<1ms", format_duration_from_ms(0.004)
+    assert_equal "<1ms", format_duration_from_ms(0.04)
+    assert_equal "<1ms", format_duration_from_ms(0.999)
+    assert_equal "<1ms", format_duration_from_ms(0.9999)
+  end
+
+  test "format_duration_from_ms at the edges of each unit" do
+    assert_equal "1.0ms",   format_duration_from_ms(1)
+    assert_equal "999ms",   format_duration_from_ms(999)
+    assert_equal "1.00s",   format_duration_from_ms(1000)
+    assert_equal "59.99s",  format_duration_from_ms(59_990)
+    assert_equal "1m 00s",  format_duration_from_ms(60_000)
+    assert_equal "1h 00m",  format_duration_from_ms(3_600_000)
+    assert_equal "277h 46m", format_duration_from_ms(1_000_000_000)
+  end
+
   test "format_duration_from_ms treats nothing as zero" do
     assert_equal "0ms", format_duration_from_ms(nil)
     assert_equal "0ms", format_duration_from_ms(0)
