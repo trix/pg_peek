@@ -12,12 +12,12 @@ Gem::Specification.new do |spec|
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/trix/pg_peek"
-  spec.metadata["changelog_uri"] = "https://github.com/trix/pg_peek/releases"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 7.1.0"
+  spec.add_dependency "rails", ">= 8.1"
   spec.add_dependency "pg", ">= 1.0"
 end

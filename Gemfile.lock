@@ -3,7 +3,7 @@ PATH
   specs:
     pg_peek (0.1.0)
       pg (>= 1.0)
-      rails (>= 7.1.0)
+      rails (>= 8.1)
 
 GEM
   remote: https://rubygems.org/

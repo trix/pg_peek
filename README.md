@@ -7,6 +7,7 @@ A Rails Engine that provides a web UI for monitoring and analyzing PostgreSQL qu
 - **Database Overview**: View PostgreSQL version, installed extensions, and table listings
 - **Query Performance Analysis**: Identify slow queries using the `pg_stat_statements` extension
 - **SQLcommenter Support**: Parses and displays SQLcommenter tags from queries
+- **Endpoint and Active Job Breakdowns**: Groups query cost by controller/action and by job class, with a per-job drill-down into its query shapes
 - **Multi-Database Support**: Works with multiple database configurations (primary, replica, etc.)
 
 ## Installation
@@ -172,10 +173,9 @@ docker compose up postgres18 -d
 
 # Setup the dummy app database
 bin/rails db:setup
-bin/rails s 
 
 # Start the development server
-rails s
+bin/rails s
 
 # Visit http://localhost:3000/pg_peek
 ```

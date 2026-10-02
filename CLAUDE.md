@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pg_peek is a Rails Engine (gem) that provides a web UI for monitoring and analyzing PostgreSQL query performance. It's designed to be mounted into a Rails application for database introspection.
 
-- **Framework:** Rails 7.1.0+ Engine with isolated namespace
+- **Framework:** Rails 8.1+ Engine with isolated namespace
 - **Database:** PostgreSQL (uses pg_stat_statements extension)
 - **Assets:** Custom classless stylesheet (`app/assets/stylesheets/pg_peek/application.css`), monospace/terminal-styled with light+dark themes; Propshaft pipeline
 
