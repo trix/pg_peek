@@ -4,7 +4,7 @@
 class PgPeek::Reports::Jobs < PgPeek::Report
   title "Jobs"
 
-  column :job_class, header: "job"
+  column :job_class, header: "job", format: :name
   column :total_exec_time_ms, header: "db time", align: :right, format: :duration_ms
   column :share, align: :right, format: :intensity, title: "Share of database time across jobs"
   column :total_calls, header: "queries", align: :right, format: :number

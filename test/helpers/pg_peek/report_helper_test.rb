@@ -89,6 +89,32 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_equal 10.0, @report.max_for(@report.columns.last)
   end
 
+  test "splits an endpoint name after the last slash" do
+    assert_equal [ "courier_company_app/dashboard/", "executions#show" ],
+                 name_parts("courier_company_app/dashboard/executions#show")
+  end
+
+  test "leaves an endpoint without a namespace whole" do
+    assert_equal [ nil, "posts#index" ], name_parts("posts#index")
+  end
+
+  test "splits a job name after the last double colon" do
+    assert_equal [ "GDPR::OrderAnonymizationBatch::", "ProgressMonitorJob" ],
+                 name_parts("GDPR::OrderAnonymizationBatch::ProgressMonitorJob")
+  end
+
+  test "leaves a top-level job whole" do
+    assert_equal [ nil, "PostDigestJob" ], name_parts("PostDigestJob")
+  end
+
+  test "renders a name with its namespace dimmed and the full name on hover" do
+    markup = name_cell("Reports::PostSummaryJob")
+
+    assert_includes markup, 'title="Reports::PostSummaryJob"'
+    assert_includes markup, '<span class="namespace"><span>Reports::</span></span>'
+    assert_includes markup, '<span class="leaf">PostSummaryJob</span>'
+  end
+
   test "renders nothing for a missing value rather than the word nil" do
     assert_equal "", format_cell(@report, @report.columns.first, PgPeek::Report::Row.new({}))
   end

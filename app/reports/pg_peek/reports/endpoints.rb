@@ -6,7 +6,7 @@ class PgPeek::Reports::Endpoints < PgPeek::Report
   # the shape of an N+1 rather than a page that legitimately asks twice.
   N_PLUS_ONE_THRESHOLD = 5
 
-  column :endpoint
+  column :endpoint, format: :name
   column :total_exec_time_ms, header: "db time", align: :right, format: :duration_ms
   column :share, align: :right, format: :intensity, title: "Share of database time across endpoints"
   column :request_count, header: "requests", align: :right, format: :number,
