@@ -63,7 +63,7 @@ end</code></pre>
         <p class="dim">No endpoint has run a query yet.</p>
       <% else %>
         <%= render "pg_peek/reports/report", report: @endpoints,
-                   columns: %i[endpoint share total_exec_time_ms max_queries_per_request],
+                   columns: %i[endpoint total_exec_time_ms max_queries_per_request],
                    limit: PgPeek::DatabasesController::OVERVIEW_ROWS,
                    link_column: :endpoint,
                    link: ->(row) { endpoint_path(@database, row["endpoint"]) } %>
@@ -76,7 +76,7 @@ end</code></pre>
         <p class="dim">No job has run a query yet.</p>
       <% else %>
         <%= render "pg_peek/reports/report", report: @jobs,
-                   columns: %i[job_class share total_exec_time_ms],
+                   columns: %i[job_class total_exec_time_ms],
                    limit: PgPeek::DatabasesController::OVERVIEW_ROWS,
                    link_column: :job_class,
                    link: ->(row) { database_job_path(@database, row["job_class"]) } %>

@@ -1,11 +1,18 @@
 # Turns a report cell into markup. The report is passed alongside the column
-# because some formats are relative -- an intensity bar means nothing without
-# the largest value in its column.
+# because a bar is relative -- it means nothing without the largest value in
+# its column.
 module PgPeek::ReportHelper
   def format_cell(report, column, row)
     value = row.value(column)
     return "" if value.nil? || value.to_s.empty?
 
+    content = format_value(report, column, value)
+    return content unless column.bar?
+
+    safe_join([ content, intensity_bar(value.to_f, report.max_for(column)) ], " ")
+  end
+
+  def format_value(report, column, value)
     case column.format
     when :number       then format_number(value.to_i)
     when :duration_ms  then duration_cell(value.to_f)
@@ -13,7 +20,6 @@ module PgPeek::ReportHelper
     when :percent      then "#{value}%"
     when :ratio        then "~#{value}"
     when :sql          then sql_cell(report, value.to_s)
-    when :intensity    then intensity_bar(value.to_f, report.max_for(column))
     when :name         then name_cell(value.to_s)
     else value.to_s
     end
@@ -67,10 +73,10 @@ module PgPeek::ReportHelper
   end
 
   def cell_class(column)
-    case column.format
-    when :intensity then "intensity"
-    when :name then "name-column"
-    else column.numeric? ? "num" : nil
+    if column.format == :name
+      "name-column"
+    elsif column.numeric?
+      "num"
     end
   end
 end

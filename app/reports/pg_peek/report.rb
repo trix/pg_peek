@@ -43,8 +43,7 @@ class PgPeek::Report
 
   def title = self.class.title
 
-  # Relative formats -- an intensity bar, a share of total -- need the extent of
-  # the column, not just the cell.
+  # A bar is relative: it needs the extent of the column, not just the cell.
   def max_for(column)
     @maxima ||= {}
     @maxima[column.key] ||= rows.filter_map { |row| row.value(column)&.to_f }.max

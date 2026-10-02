@@ -199,7 +199,6 @@ tbody th + td { text-align: right; }
 .nowrap { white-space: nowrap; }
 .dim { color: var(--dim); }
 .warn { color: var(--warn); }
-.intensity { white-space: nowrap; }
 .bar { letter-spacing: 0.08em; }
 .bar-on { color: var(--accent); }
 /* Brightness follows the value: a one-segment bar sits at 80%, five at full. */

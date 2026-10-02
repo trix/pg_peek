@@ -11,7 +11,7 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     column :total_time, align: :right, format: :duration_ms
     column :share, align: :right, format: :percent
     column :query, format: :sql
-    column :weight, align: :right, format: :intensity
+    column :weight, align: :right, format: :number, bar: true
 
     def fetch_rows
       [ { "name" => "A", "calls" => "1234", "total_time" => "2500", "share" => "40.0",
@@ -87,10 +87,22 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_includes markup, 'title="0.044 ms"'
   end
 
-  test "scales an intensity cell against the column maximum" do
+  test "scales a bar against the column maximum" do
     # 10 of a maximum 10 fills every segment; 5 of 10 fills half, rounded up.
     assert_equal 5, filled(cell(:weight, 0))
     assert_equal 3, filled(cell(:weight, 1))
+  end
+
+  test "shows the value itself in front of its bar" do
+    assert cell(:weight, 1).start_with?("5 <span class=\"bar bar-3\">")
+  end
+
+  test "columns without a bar draw none" do
+    assert_not_includes cell(:calls, 0), "bar"
+  end
+
+  test "right-aligns a barred column like any other figure" do
+    assert_equal "num", cell_class(column(:weight))
   end
 
   test "reports the largest value in a column" do

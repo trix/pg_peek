@@ -42,6 +42,24 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "details.tags pre", text: /controller: posts/
   end
 
+  test "index shows the call count next to its bar and a sub-millisecond average" do
+    listed = PgPeek::PgStatStatements.new(database: @database)
+    listed.define_singleton_method(:usable?) { true }
+    listed.define_singleton_method(:outliers) do
+      [ { "ncalls" => "1,234", "total_exec_time" => "00:00:00.05", "prop_exec_time" => "100.0%",
+          "avg_exec_ms" => "0.0405", "query" => "SELECT 1" } ]
+    end
+
+    PgPeek::PgStatStatements.stub(:new, listed) do
+      get pg_peek.database_queries_path(@database)
+    end
+
+    assert_response :success
+    assert_select "thead th.num", text: "calls"
+    assert_select "tbody td.num", text: /\A\s*1,234 █████\s*\z/
+    assert_select "tbody td.num span", text: "0.041ms"
+  end
+
   test "index renders preload instructions when the module is not preloaded" do
     not_preloaded = PgPeek::PgStatStatements.new(database: @database)
     not_preloaded.define_singleton_method(:preloaded?) { false }
