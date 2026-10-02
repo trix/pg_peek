@@ -64,6 +64,9 @@ PostCleanupJob.perform_now
 puts "  Running PostDigestJob..."
 3.times { PostDigestJob.perform_now(limit: 5) }
 
+puts "  Running Reports::PostSummaryJob..."
+Reports::PostSummaryJob.perform_now
+
 # Jobs that query BOTH databases (primary + analytics)
 puts "  Running PostEngagementJob (all posts - queries both databases)..."
 PostEngagementJob.perform_now

@@ -45,7 +45,7 @@
   <%= render "pg_peek/reports/report",
              report: @report,
              link_column: :job_class,
-             link: ->(row) { database_job_path(@database, ERB::Util.url_encode(row["job_class"])) } %>
+             link: ->(row) { database_job_path(@database, row["job_class"]) } %>
 
   <p class="dim" data-filter-empty hidden>No jobs match that filter.</p>
 <% end %>

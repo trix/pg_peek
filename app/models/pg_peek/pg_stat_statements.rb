@@ -133,10 +133,10 @@ class PgPeek::PgStatStatements
   def outliers_by_job(job_class)
     return unless usable?
 
-    # Build pattern to match job='JobClassName' in SQLcommenter
-    # Need to escape for SQL LIKE and quote properly
-    escaped_job = job_class.gsub("'", "''")
-    pattern = "%job='#{escaped_job}'%"
+    # Rails writes the job tag url-encoded (job='Reports%3A%3ADigestJob'), so
+    # match it encoded, with the % of the encoding escaped for LIKE.
+    encoded_job = ActiveRecord::Base.sanitize_sql_like(ERB::Util.url_encode(job_class))
+    pattern = "%job='#{encoded_job}'%"
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers_by_job",
                                       pg_version: database.major_version,

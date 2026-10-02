@@ -13,7 +13,7 @@ class PgPeek::JobsController < PgPeek::ApplicationController
   end
 
   def show
-    @job_class = CGI.unescape(params[:job_class])
+    @job_class = params[:job_class]
     return render "pg_peek/pg_stat_statements/not_preloaded" unless @pg_stat_statements.usable?
 
     @report = PgPeek::Reports::JobQueries.new(database: @database, job_class: @job_class)

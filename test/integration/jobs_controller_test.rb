@@ -40,8 +40,10 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
   test "index names the missing job tag as the cause when it is not configured" do
     skip_unless_usable(@pg_stat_statements)
 
-    with_query_log_tags [ :application, :controller, :action ] do
-      get pg_peek.database_jobs_path(@database)
+    PgPeek::PgStatStatements.stub(:new, no_jobs_stat_statements) do
+      with_query_log_tags [ :application, :controller, :action ] do
+        get pg_peek.database_jobs_path(@database)
+      end
     end
 
     assert_response :success
@@ -52,7 +54,9 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
   test "index blames the statistics reset when the job tag is configured" do
     skip_unless_usable(@pg_stat_statements)
 
-    get pg_peek.database_jobs_path(@database)
+    PgPeek::PgStatStatements.stub(:new, no_jobs_stat_statements) do
+      get pg_peek.database_jobs_path(@database)
+    end
 
     assert_response :success
     assert_select "article[aria-label='No jobs have run yet']"
@@ -68,12 +72,42 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
     assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']"
   end
 
+  test "index shows a namespaced job by its class name and links to its page" do
+    skip_unless_usable(@pg_stat_statements)
+    Reports::PostSummaryJob.perform_now
+
+    get pg_peek.database_jobs_path(@database)
+
+    assert_response :success
+    assert_select "a[href='/pg_peek/databases/primary/jobs/Reports::PostSummaryJob']",
+                  text: "Reports::PostSummaryJob"
+  end
+
+  test "show titles a namespaced job by its class name and lists its queries" do
+    skip_unless_usable(@pg_stat_statements)
+    Reports::PostSummaryJob.perform_now
+
+    get pg_peek.database_job_path(@database, "Reports::PostSummaryJob")
+
+    assert_response :success
+    assert_select "h1 code.name", text: "Reports::PostSummaryJob"
+    assert_select "article[aria-label='No queries found']", count: 0
+    assert_select "td", text: /length\(title\)/
+  end
+
   private
 
   def not_preloaded_stat_statements
     PgPeek::PgStatStatements.new(database: @database).tap do |pg_stat|
       pg_stat.define_singleton_method(:preloaded?) { false }
       pg_stat.define_singleton_method(:shared_preload_libraries) { "" }
+    end
+  end
+
+  # Statistics outlive a test run, so jobs run by other tests stay in them.
+  def no_jobs_stat_statements
+    PgPeek::PgStatStatements.new(database: @database).tap do |pg_stat|
+      pg_stat.define_singleton_method(:jobs) { [] }
     end
   end
 
