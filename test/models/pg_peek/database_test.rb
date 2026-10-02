@@ -80,4 +80,34 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
     assert_not_includes tables, "schema_migrations"
     assert_not_includes tables, "ar_internal_metadata"
   end
+
+  # Dead tuples show up in the statistics only once committed, so the tables are
+  # built in a session of their own and dropped afterwards. Autovacuum is off on
+  # them so it cannot clean up before the test looks.
+  test "tables_with_dead_tuples flags only tables past autovacuum's trigger point" do
+    session = open_pg_session
+    # 3 of 4 rows dead: a high share, but below autovacuum's trigger point of 50.
+    session.exec("CREATE TABLE peek_dead_small (id int) WITH (autovacuum_enabled = false)")
+    session.exec("INSERT INTO peek_dead_small SELECT generate_series(1, 4)")
+    session.exec("DELETE FROM peek_dead_small WHERE id > 1")
+    # 500 dead next to 500 live: past the trigger point of 50 + 0.2 * 500.
+    session.exec("CREATE TABLE peek_dead_large (id int) WITH (autovacuum_enabled = false)")
+    session.exec("INSERT INTO peek_dead_large SELECT generate_series(1, 1000)")
+    session.exec("DELETE FROM peek_dead_large WHERE id > 500")
+
+    flagged = []
+    wait_for("the dead tuples to be counted") do
+      # A session reports its counts between statements, at most about once a
+      # second, so it has to keep running statements until they arrive.
+      session.exec("SELECT 1")
+      flagged = @database.tables_with_dead_tuples(PgPeek.config.dead_tuple_warning_threshold).map { |row| row["relname"] }
+      flagged.include?("peek_dead_large")
+    end
+
+    assert_not_includes flagged, "peek_dead_small"
+    assert PgPeek::Table.new(@database, "peek_dead_large").dead_tuple_warning?
+    assert_not PgPeek::Table.new(@database, "peek_dead_small").dead_tuple_warning?
+  ensure
+    session&.exec("DROP TABLE IF EXISTS peek_dead_small, peek_dead_large")
+  end
 end

@@ -56,7 +56,7 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 - `connections` - maps a `database.yml` database name to the ActiveRecord base class connected to it (how `Database#connection` resolves a connection)
 - `excluded_tables` - strings/regexps hidden from the tables report (defaults to `schema_migrations`, `ar_internal_metadata`)
-- `outliers_limit`, `cache_hit_warning_threshold`, `dead_tuple_warning_threshold`, `long_query_warning_seconds`, `idle_in_transaction_warning_seconds` - thresholds behind the "attention" callouts and report limits
+- `outliers_limit`, `cache_hit_warning_threshold`, `dead_tuple_warning_threshold`, `long_query_warning_seconds`, `idle_in_transaction_warning_seconds`, `unused_index_min_stats_age`, `unused_index_min_size` - thresholds behind the "attention" callouts and report limits
 - `username` / `password` (also settable via `PG_PEEK_USERNAME`/`PG_PEEK_PASSWORD` or `credentials.pg_peek.*`) and `public_dashboard`
 
 ### Authentication

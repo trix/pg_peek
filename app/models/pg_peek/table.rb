@@ -147,10 +147,11 @@ class PgPeek::Table
     (dead_tuples.to_f / total * 100).round(1)
   end
 
+  # The same rule as the overview's attention list: past autovacuum's trigger
+  # point as well as the percentage threshold.
   def dead_tuple_warning?
-    ratio = dead_tuple_ratio
-    return false if ratio.nil?
-    ratio >= PgPeek.config.dead_tuple_warning_threshold
+    database.tables_with_dead_tuples(PgPeek.config.dead_tuple_warning_threshold)
+            .any? { |table| table["relname"] == name }
   end
 
   def row_estimate

@@ -54,10 +54,18 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
                    href: database_table_path(@database, table["relname"]) }
       end
 
-      indexes = PgPeek::Reports::Indexes.new(database: @database)
-      if indexes.unused.any?
-        items << { text: "#{helpers.pluralize(indexes.unused.size, "unused index")} · #{helpers.number_to_human_size(indexes.unused_bytes)}",
-                   href: database_indexes_path(@database) }
+      # Scan counts restart at zero on a statistics reset, so right after one
+      # every index looks unused. Small ones cost too little to act on; the
+      # indexes page still lists them all.
+      reset_at = @database.stats_reset_at
+      if reset_at.nil? || reset_at < PgPeek.config.unused_index_min_stats_age.ago
+        unused = PgPeek::Reports::Indexes.new(database: @database).unused
+                   .select { |row| row["size_bytes"].to_i >= PgPeek.config.unused_index_min_size }
+        if unused.any?
+          bytes = unused.sum { |row| row["size_bytes"].to_i }
+          items << { text: "#{helpers.pluralize(unused.size, "unused index")} · #{helpers.number_to_human_size(bytes)}",
+                     href: database_indexes_path(@database) }
+        end
       end
 
       activity = database_activity_path(@database)
@@ -84,11 +92,6 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
       max = @connection_summary["max_connections"].to_i
       if max.positive? && used >= max * 0.8
         items << { text: "#{used} of #{max} connections in use", href: activity }
-      end
-
-      if @stats_reset_at && @stats_reset_at > 1.hour.ago
-        items << { text: "statistics were reset #{helpers.time_ago_in_words(@stats_reset_at)} ago -- figures may not be representative yet",
-                   href: database_path(@database, anchor: "pg_stat_statements") }
       end
 
       items
