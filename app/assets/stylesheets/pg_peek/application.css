@@ -280,6 +280,12 @@ button, .button {
 button:hover { border-color: var(--fg); }
 button.danger { color: var(--danger); border-color: var(--danger); }
 button.danger:hover { background: var(--danger); color: var(--bg); }
+button:disabled, button:disabled:hover {
+  background: var(--panel);
+  color: var(--dim);
+  border-color: var(--line);
+  cursor: not-allowed;
+}
 
 form.inline { display: inline; margin: 0; }
 
@@ -293,6 +299,13 @@ form.inline { display: inline; margin: 0; }
 .notice {
   border: 1px solid var(--ok);
   color: var(--ok);
+  padding: 0.4rem 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.alert {
+  border: 1px solid var(--danger);
+  color: var(--danger);
   padding: 0.4rem 0.75rem;
   margin: 0.75rem 0;
 }

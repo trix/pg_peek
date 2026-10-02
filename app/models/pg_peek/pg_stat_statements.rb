@@ -24,16 +24,34 @@ class PgPeek::PgStatStatements
   # The extension can be created in the database while the module itself was
   # never loaded at server start. Querying the view then raises
   # PG::ObjectNotInPrerequisiteState, so every read has to check this first.
+  #
+  # Roles without pg_read_all_settings (dokku's postgres plugin, most managed
+  # hosts) cannot read shared_preload_libraries, so then the only way to tell
+  # is to ask the module itself.
   def preloaded?
-    shared_preload_libraries.split(",").map(&:strip).include?(LIBRARY_NAME)
+    if shared_preload_libraries
+      shared_preload_libraries.split(",").map(&:strip).include?(LIBRARY_NAME)
+    else
+      installed? && module_loaded?
+    end
   end
 
   def usable?
     installed? && preloaded?
   end
 
+  # nil when this role may not examine the setting, as opposed to "" when
+  # nothing is preloaded.
   def shared_preload_libraries
-    @shared_preload_libraries ||= connection.select_value(PgPeek::QueryLoader.mark("SHOW shared_preload_libraries")).to_s
+    return @shared_preload_libraries if defined?(@shared_preload_libraries)
+
+    @shared_preload_libraries = without_aborting_transaction do
+      connection.select_value(PgPeek::QueryLoader.mark("SHOW shared_preload_libraries")).to_s
+    end
+  rescue ActiveRecord::StatementInvalid => e
+    raise unless e.cause.is_a?(PG::InsufficientPrivilege)
+
+    @shared_preload_libraries = nil
   end
 
   def outdated?
@@ -42,12 +60,23 @@ class PgPeek::PgStatStatements
     @installed_version != @default_version
   end
 
+  # The extension revokes EXECUTE on the reset from PUBLIC, so only superusers
+  # and roles granted it may run one.
+  def resettable?
+    return @resettable if defined?(@resettable)
+
+    @resettable = usable? && connection.select_value(PgPeek::QueryLoader.mark(<<~SQL)) == true
+      SELECT bool_and(has_function_privilege(oid, 'EXECUTE'))
+      FROM pg_proc WHERE proname = 'pg_stat_statements_reset'
+    SQL
+  end
+
   # Server-wide on purpose. pg_stat_statements_info keeps a single stats_reset
   # for the whole server and only moves it when every entry is removed, so a
   # reset scoped to this database would leave "stats since" pointing at the
   # old time.
   def reset!
-    return unless usable?
+    return unless resettable?
 
     connection.execute PgPeek::QueryLoader.mark(<<-SQL)
       SELECT pg_stat_statements_reset();
@@ -118,6 +147,27 @@ class PgPeek::PgStatStatements
   end
 
   private
+
+  # pg_stat_statements_info() raises PG::ObjectNotInPrerequisiteState unless
+  # the module was loaded at server start, and is readable by any role.
+  def module_loaded?
+    return @module_loaded if defined?(@module_loaded)
+
+    @module_loaded = without_aborting_transaction do
+      connection.select_value(PgPeek::QueryLoader.mark("SELECT 1 FROM pg_stat_statements_info"))
+      true
+    end
+  rescue ActiveRecord::StatementInvalid => e
+    raise unless e.cause.is_a?(PG::ObjectNotInPrerequisiteState)
+
+    @module_loaded = false
+  end
+
+  # A failed statement inside an open transaction (a host app's, or a
+  # transactional test) would poison it; a savepoint confines the failure.
+  def without_aborting_transaction(&)
+    connection.transaction(requires_new: true, &)
+  end
 
   def verify_installation
     result = connection.execute PgPeek::QueryLoader.mark(<<-SQL)

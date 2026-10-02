@@ -142,8 +142,16 @@ end</code></pre>
                   reset_database_pg_stat_statements_path(@database),
                   method: :delete,
                   class: "danger",
+                  disabled: !@pg_stat_statements.resettable?,
                   form_class: "inline",
                   form: { data: { confirm: "Reset pg_stat_statements? This clears statement statistics for every database on this server." } } %>
+    <% unless @pg_stat_statements.resettable? %>
+      <p class="dim">
+        <%= @connection_summary["username"] %> may not reset the statistics: the extension
+        allows it only to superusers and roles granted it. To allow it:
+      </p>
+      <pre><code>GRANT EXECUTE ON FUNCTION pg_stat_statements_reset TO <%= @connection_summary["username"] %>;</code></pre>
+    <% end %>
     <% if @pg_stat_statements.outdated? %>
       <p class="dim">
         Version <%= @pg_stat_statements.default_version %> is available:
