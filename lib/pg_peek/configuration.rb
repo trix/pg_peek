@@ -1,3 +1,5 @@
+require "active_support/core_ext/integer/time"
+
 module PgPeek
   class Configuration
     DEFAULT_EXCLUDED_TABLES = %w[schema_migrations ar_internal_metadata].freeze
@@ -6,10 +8,11 @@ module PgPeek
     DEFAULT_CACHE_HIT_WARNING_THRESHOLD = 99 # percentage
     DEFAULT_LONG_QUERY_WARNING_SECONDS = 5
     DEFAULT_IDLE_IN_TRANSACTION_WARNING_SECONDS = 60
+    DEFAULT_UNUSED_INDEX_MIN_STATS_AGE = 1.day
 
     attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit,
                   :cache_hit_warning_threshold, :long_query_warning_seconds,
-                  :idle_in_transaction_warning_seconds, :public_dashboard
+                  :idle_in_transaction_warning_seconds, :unused_index_min_stats_age, :public_dashboard
     attr_writer :username, :password
 
     def initialize
@@ -20,6 +23,7 @@ module PgPeek
       @cache_hit_warning_threshold = DEFAULT_CACHE_HIT_WARNING_THRESHOLD
       @long_query_warning_seconds = DEFAULT_LONG_QUERY_WARNING_SECONDS
       @idle_in_transaction_warning_seconds = DEFAULT_IDLE_IN_TRANSACTION_WARNING_SECONDS
+      @unused_index_min_stats_age = DEFAULT_UNUSED_INDEX_MIN_STATS_AGE
       @public_dashboard = false
     end
 

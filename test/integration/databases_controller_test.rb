@@ -63,10 +63,26 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
   test "show flags unused indexes in attention" do
     database = PgPeek::Database.find("primary")
     database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
+    database.define_singleton_method(:stats_reset_at) { 2.days.ago }
 
-    get pg_peek.database_path(database)
+    PgPeek::Database.stub(:find, database) do
+      get pg_peek.database_path(database)
+    end
 
     assert_select "ul.attention li a[href='#{pg_peek.database_indexes_path(database)}']", text: /unused ind/
+  end
+
+  test "show leaves unused indexes out while statistics are young" do
+    database = PgPeek::Database.find("primary")
+    database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
+    database.define_singleton_method(:stats_reset_at) { 2.hours.ago }
+
+    PgPeek::Database.stub(:find, database) do
+      get pg_peek.database_path(database)
+    end
+
+    assert_response :success
+    assert_select "ul.attention li a[href='#{pg_peek.database_indexes_path(database)}']", count: 0
   end
 
   test "show flags a cache hit ratio below the threshold" do

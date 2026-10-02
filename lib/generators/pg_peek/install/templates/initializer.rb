@@ -29,6 +29,11 @@ Rails.application.config.pg_peek.tap do |config|
   # Dead tuple ratio threshold (percentage) for warnings.
   # config.dead_tuple_warning_threshold = 10
 
+  # Index scan counts start from zero when statistics are reset, so right
+  # after a reset every index looks unused. The overview waits this long
+  # before calling unused indexes out.
+  # config.unused_index_min_stats_age = 1.day
+
   # A query running longer than this is called out on the overview.
   # config.long_query_warning_seconds = 5
 
