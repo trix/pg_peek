@@ -79,6 +79,14 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_not_includes markup, "<details"
   end
 
+  test "formats sub-millisecond durations instead of rounding them to zero" do
+    row = PgPeek::Report::Row.new("total_time" => "0.0437")
+
+    markup = format_cell(@report, column(:total_time), row).to_s
+    assert_includes markup, ">0.044ms<"
+    assert_includes markup, 'title="0.044 ms"'
+  end
+
   test "scales an intensity cell against the column maximum" do
     # 10 of a maximum 10 fills every segment; 5 of 10 fills half, rounded up.
     assert_equal 5, filled(cell(:weight, 0))

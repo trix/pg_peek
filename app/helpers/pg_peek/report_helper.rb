@@ -21,7 +21,7 @@ module PgPeek::ReportHelper
 
   # The compact figure is what you scan; the exact one is a hover away.
   def duration_cell(ms)
-    tag.span(format_duration_from_ms(ms), title: "#{number_with_delimiter(ms.round(1))} ms")
+    tag.span(format_duration_from_ms(ms), title: "#{number_with_delimiter(ms.round(3))} ms")
   end
 
   # An endpoint or job name in its native form, the namespace dimmed so the
