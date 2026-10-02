@@ -146,6 +146,22 @@ class PgPeek::PgStatStatements
     result.to_a
   end
 
+  # endpoint is controller#action, as the endpoints report names it.
+  def outliers_by_endpoint(endpoint)
+    return unless usable?
+
+    # Rails writes the tags url-encoded (namespaced_controller='staff%2Fprocesses'),
+    # so compare them encoded.
+    controller, action = endpoint.split("#", 2).map { |part| ERB::Util.url_encode(part) }
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/outliers_by_endpoint",
+                                      pg_version: database.major_version,
+                                      controller: connection.quote(controller),
+                                      action: connection.quote(action),
+                                      limit: PgPeek.config.outliers_limit)
+    connection.execute(query).to_a
+  end
+
   private
 
   # pg_stat_statements_info() raises PG::ObjectNotInPrerequisiteState unless

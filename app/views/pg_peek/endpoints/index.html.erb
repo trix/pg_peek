@@ -13,7 +13,10 @@
     </p>
   </article>
 <% else %>
-  <%= render "pg_peek/reports/report", report: @report %>
+  <%= render "pg_peek/reports/report",
+             report: @report,
+             link_column: :endpoint,
+             link: ->(row) { endpoint_path(@database, row["endpoint"]) } %>
 
   <p class="dim">
     <strong>q/req</strong> is an estimate: the request count is inferred from the

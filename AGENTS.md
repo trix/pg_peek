@@ -77,9 +77,9 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 Every angle pg_peek offers - queries, endpoints, jobs, tables, indexes, sessions, the database list itself - is a `PgPeek::Report` subclass (`app/reports/pg_peek/`) rather than bespoke controller-plus-view code: a report declares its `column`s (`PgPeek::Column`: key, header, alignment, format) and a `fetch_rows` returning hashes keyed by column name, usually straight from a `.sql` file. The same declaration can drive the HTML table or, e.g., a terminal renderer.
 
-Concrete reports: `Databases`, `Tables`, `Queries` (and `JobQueries < Queries`, scoped to one job class), `Endpoints`, `Jobs`, `Indexes`, `Sessions`, `Blocked` (sessions waiting on a lock, built from `Sessions` rather than a second `pg_stat_activity` snapshot).
+Concrete reports: `Databases`, `Tables`, `Queries` (and `JobQueries < Queries`, scoped to one job class, and `EndpointQueries < Queries`, scoped to one controller#action), `Endpoints`, `Jobs`, `Indexes`, `Sessions`, `Blocked` (sessions waiting on a lock, built from `Sessions` rather than a second `pg_stat_activity` snapshot).
 
-`PgPeek::ReportHelper#format_cell` turns a `Report::Row` cell into markup based on its column's `format` (`:number`, `:duration_ms`, `:duration`, `:percent`, `:ratio`, `:sql`, `:intensity`, `:name`); `:intensity` needs `report.max_for(column)` since it renders as a bar relative to the largest value in that column. `:name` (endpoint and job names) dims the namespace before the last `/` or `::` (`name_parts`), and its column takes the width left over by the figures, cutting the namespace from the left with the full name on hover. A `:sql` cell also resolves its SQLcommenter tags via `PgPeek::SqlComment`: when there's a label, a link line underneath (a job's own `/jobs/:job_class` page, or the `/endpoints` list for a controller/action - there is no per-endpoint page to link into yet); either way, every raw tag sits behind a `<details>` disclosure for the full dump.
+`PgPeek::ReportHelper#format_cell` turns a `Report::Row` cell into markup based on its column's `format` (`:number`, `:duration_ms`, `:duration`, `:percent`, `:ratio`, `:sql`, `:intensity`, `:name`); `:intensity` needs `report.max_for(column)` since it renders as a bar relative to the largest value in that column. `:name` (endpoint and job names) dims the namespace before the last `/` or `::` (`name_parts`), and its column takes the width left over by the figures, cutting the namespace from the left with the full name on hover. A `:sql` cell also resolves its SQLcommenter tags via `PgPeek::SqlComment`: when there's a label, a link line underneath (a job's own `/jobs/:job_class` page, or a controller/action's own `/endpoints/:controller/:action` page); either way, every raw tag sits behind a `<details>` disclosure for the full dump.
 
 ### Query Loading
 
@@ -90,13 +90,13 @@ Raw SQL lives under `app/queries/pg_peek/pgNN/**/*.sql`, one directory per major
 - **`DatabasesController`**: Lists databases (`index`), redirects to the primary's overview (`home`, the engine root), shows the per-database overview - vitals, attention, endpoints/jobs/queries sections (`show`)
 - **`TablesController`**: Per-table detail page (stats, cache ratios)
 - **`QueriesController`**: Slowest statements from pg_stat_statements
-- **`EndpointsController`, `JobsController`**: Statements grouped by SQLcommenter controller/action and job tags (`JobsController#show` drills into one job's query shapes)
+- **`EndpointsController`, `JobsController`**: Statements grouped by SQLcommenter controller/action and job tags (`EndpointsController#show` and `JobsController#show` drill into one endpoint's or one job's query shapes)
 - **`IndexesController`, `ActivityController`**: Index usage; live sessions and lock waits
 - **`PgStatStatementsController`**: Resets the extension's statistics
 
 ### Helpers
 
-- **`ApplicationHelper`**: `strip_sqlcommenter` (removes the trailing comment before displaying SQL) and `sqlcommenter_href` (where a parsed tags hash points, via `PgPeek::SqlComment`) plus display formatting used across views - `format_duration`/`format_duration_from_ms` (unit auto-scales: `210ms`, `1.20s`, `2m 05s`), `format_rate`, `format_number`, `format_percentage`, `format_time_ago`, `intensity_bar`, `switch_database_path` (where the current section lives when switching databases).
+- **`ApplicationHelper`**: `strip_sqlcommenter` (removes the trailing comment before displaying SQL), `sqlcommenter_href` (where a parsed tags hash points, via `PgPeek::SqlComment`) and `endpoint_path` (an endpoint's page from its `controller#action` name) plus display formatting used across views - `format_duration`/`format_duration_from_ms` (unit auto-scales: `210ms`, `1.20s`, `2m 05s`), `format_rate`, `format_number`, `format_percentage`, `format_time_ago`, `intensity_bar`, `switch_database_path` (where the current section lives when switching databases).
 - **`ReportHelper`**: Renders `Report`/`Column` cells (`format_cell`, `cell_class`) - see Reports above.
 
 ### URL structure
@@ -106,11 +106,11 @@ prefer GET requests (shareable links), so it easy to share links to specific dat
 
 ### Routes
 
-Routes are defined in `config/routes.rb` with databases as the primary resource and nested resources for tables, queries, endpoints, indexes, jobs, activity, and a `pg_stat_statements` reset action.
+Routes are defined in `config/routes.rb` with databases as the primary resource and nested resources for tables, queries, endpoints, indexes, jobs, activity, and a `pg_stat_statements` reset action. An endpoint's page is `endpoints/*endpoint_controller/:endpoint_action` (`admin/posts#index` is `endpoints/admin/posts/index`), so a namespace keeps its slashes and no `#` has to be encoded.
 
 ## Testing
 
-Tests use a dummy Rails app located in `test/dummy/` with PostgreSQL, mounting the engine at `/pg_peek` and defining `Post`/`PostView` models plus jobs (`PostAnalyticsJob`, `PostEngagementJob`, etc.) that generate realistic multi-database, SQLcommenter-tagged query traffic. `test/dummy/db/seeds.rb` seeds posts/views and runs those jobs - useful for populating pg_stat_statements when running the dummy app manually in a browser.
+Tests use a dummy Rails app located in `test/dummy/` with PostgreSQL, mounting the engine at `/pg_peek` and defining `Post`/`PostView` models, `PostsController` and the namespaced `Admin::PostsController`, plus jobs (`PostAnalyticsJob`, `PostEngagementJob`, etc.) that generate realistic multi-database, SQLcommenter-tagged query traffic. `test/dummy/db/seeds.rb` seeds posts/views and runs those jobs - useful for populating pg_stat_statements when running the dummy app manually in a browser.
 
 Uses Minitest. `test_helper.rb` wires up fixture loading, but the suite mostly exercises live Postgres state instead: `open_pg_session` opens extra `pg` connections (so activity/lock tests can see sessions other than their own), `wait_for` polls `pg_stat_activity` after clearing its snapshot, and `skip_unless_usable`/`install_pg_stat_statements` handle servers where the extension isn't preloaded.
 
