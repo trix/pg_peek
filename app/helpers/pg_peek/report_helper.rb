@@ -14,6 +14,7 @@ module PgPeek::ReportHelper
     when :ratio        then "~#{value}"
     when :sql          then sql_cell(report, value.to_s)
     when :intensity    then intensity_bar(value.to_f, report.max_for(column))
+    when :name         then name_cell(value.to_s)
     else value.to_s
     end
   end
@@ -21,6 +22,22 @@ module PgPeek::ReportHelper
   # The compact figure is what you scan; the exact one is a hover away.
   def duration_cell(ms)
     tag.span(format_duration_from_ms(ms), title: "#{number_with_delimiter(ms.round(1))} ms")
+  end
+
+  # An endpoint or job name in its native form, the namespace dimmed so the
+  # eye goes to the last part. When the column is too narrow, the namespace
+  # is what gets cut; the full name is on hover.
+  def name_cell(name)
+    namespace, leaf = name_parts(name)
+    tag.span(class: "qualified", title: name) do
+      safe_join([ (tag.span(tag.span(namespace), class: "namespace") if namespace), tag.span(leaf, class: "leaf") ].compact)
+    end
+  end
+
+  # Splits after the last "/" or "::": courier_company_app/dashboard/ and
+  # executions#show, or GDPR::OrderAnonymizationBatch:: and ProgressMonitorJob.
+  def name_parts(name)
+    name.match(%r{\A(.*(?:/|::))?(.*)\z}m).captures
   end
 
   # The SQL text, plus -- when SQLcommenter tagged it -- what issued it (a
@@ -52,6 +69,7 @@ module PgPeek::ReportHelper
   def cell_class(column)
     case column.format
     when :intensity then "intensity"
+    when :name then "name-column"
     else column.numeric? ? "num" : nil
     end
   end

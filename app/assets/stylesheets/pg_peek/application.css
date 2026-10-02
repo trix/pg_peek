@@ -150,8 +150,9 @@ pre {
 pre code { background: none; border: 0; padding: 0; }
 
 /* Names from the data (a job class, a table) keep their case inside the
-   lowercase headings. */
+   lowercase headings, and read as the heading rather than as a code box. */
 .name { text-transform: none; }
+code.name { background: none; border: 0; padding: 0; }
 
 /* Tables ------------------------------------------------------------------ */
 
@@ -208,6 +209,24 @@ tbody th + td { text-align: right; }
 .bar-4 .bar-on { opacity: 0.95; }
 .bar-5 .bar-on { opacity: 1; }
 .bar-off { color: var(--line); }
+/* An endpoint or job name takes the width the figures leave over, so a long
+   one is cut instead of pushing them out of view (max-width: 0 drops the name
+   from the table's width calculation). The dimmed namespace shrinks first and
+   is cut from the left, since the end of a name tells rows apart: rtl puts
+   the ellipsis on the left, the inner span keeps the text itself ltr so "::"
+   and "/" stay in place. A leaf wider than the cell is cut on the right. */
+.name-column { width: 100%; max-width: 0; min-width: 12ch; }
+.name-column > a { display: block; }
+.qualified { display: flex; overflow: hidden; white-space: nowrap; }
+.qualified .namespace {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+  opacity: 0.6;
+}
+.qualified .namespace > span { direction: ltr; unicode-bidi: embed; }
+.qualified .leaf { flex-shrink: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .sql { word-break: break-all; white-space: pre-wrap; background: none; border: 0; padding: 0; }
 
 /* What issued a query, from its SQLcommenter tags: a link line under the SQL,

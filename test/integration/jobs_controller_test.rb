@@ -83,6 +83,19 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
                   text: "Reports::PostSummaryJob"
   end
 
+  test "index shows a job name with its namespace dimmed and the full name on hover" do
+    skip_unless_usable(@pg_stat_statements)
+    Reports::PostSummaryJob.perform_now
+
+    get pg_peek.database_jobs_path(@database)
+
+    assert_response :success
+    assert_select "td.name-column .qualified[title='Reports::PostSummaryJob']" do
+      assert_select ".namespace", text: "Reports::"
+      assert_select ".leaf", text: "PostSummaryJob"
+    end
+  end
+
   test "show titles a namespaced job by its class name and lists its queries" do
     skip_unless_usable(@pg_stat_statements)
     Reports::PostSummaryJob.perform_now
