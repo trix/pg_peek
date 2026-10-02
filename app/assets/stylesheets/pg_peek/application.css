@@ -150,8 +150,9 @@ pre {
 pre code { background: none; border: 0; padding: 0; }
 
 /* Names from the data (a job class, a table) keep their case inside the
-   lowercase headings. */
+   lowercase headings, and read as the heading rather than as a code box. */
 .name { text-transform: none; }
+code.name { background: none; border: 0; padding: 0; }
 
 /* Tables ------------------------------------------------------------------ */
 
