@@ -79,11 +79,11 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_not_includes markup, "<details"
   end
 
-  test "formats sub-millisecond durations instead of rounding them to zero" do
+  test "shows a sub-millisecond duration as <1ms, with the exact figure on hover" do
     row = PgPeek::Report::Row.new("total_time" => "0.0437")
 
     markup = format_cell(@report, column(:total_time), row).to_s
-    assert_includes markup, ">0.044ms<"
+    assert_includes markup, ">&lt;1ms<"
     assert_includes markup, 'title="0.044 ms"'
   end
 

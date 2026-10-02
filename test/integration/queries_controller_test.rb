@@ -47,7 +47,7 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     listed.define_singleton_method(:usable?) { true }
     listed.define_singleton_method(:outliers) do
       [ { "ncalls" => "1,234", "total_exec_time" => "00:00:00.05", "prop_exec_time" => "100.0%",
-          "avg_exec_ms" => "0.0405", "query" => "SELECT 1" } ]
+          "avg_exec_ms" => "0.0437", "query" => "SELECT 1" } ]
     end
 
     PgPeek::PgStatStatements.stub(:new, listed) do
@@ -57,7 +57,7 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "thead th.num", text: "calls"
     assert_select "tbody td.num", text: /\A\s*1,234 █████\s*\z/
-    assert_select "tbody td.num span", text: "0.041ms"
+    assert_select "tbody td.num span[title='0.044 ms']", text: "<1ms"
   end
 
   test "index renders preload instructions when the module is not preloaded" do

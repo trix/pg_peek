@@ -141,15 +141,15 @@ module PgPeek::ApplicationHelper
     ((value.to_f / max_value) * INTENSITY_SEGMENTS).ceil.clamp(0, INTENSITY_SEGMENTS)
   end
 
-  # Durations pick their unit by magnitude: 0.040ms, 210ms, 1.20s, 2m 05s,
+  # Durations pick their unit by magnitude: <1ms, 210ms, 1.20s, 2m 05s,
   # 1h 12m. Values stay narrow and read at a glance, and a header sits over
   # data of similar width. The exact figure belongs in a title, not the cell.
-  # Below a millisecond two significant digits stay, so a fast query never
+  # Anything above zero but under a millisecond is <1ms, so a fast query never
   # reads as 0ms -- that is kept for a real zero.
   def format_duration_from_ms(total_ms)
     ms = total_ms.to_f
     return "0ms" if ms <= 0
-    return "#{number_with_precision(ms, precision: 2, significant: true)}ms" if ms < 1
+    return "<1ms" if ms < 1
     return format("%.1fms", ms) if ms < 10
     return "#{ms.round}ms" if ms < 1000
 

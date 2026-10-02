@@ -167,11 +167,11 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     assert_equal "1h 12m", format_duration_from_ms(4_320_000)
   end
 
-  test "format_duration_from_ms keeps two significant digits below a millisecond" do
-    assert_equal "0.0040ms", format_duration_from_ms(0.004)
-    assert_equal "0.040ms",  format_duration_from_ms(0.04)
-    assert_equal "0.044ms",  format_duration_from_ms(0.0437)
-    assert_equal "1.0ms",    format_duration_from_ms(0.999)
+  test "format_duration_from_ms shows anything under a millisecond as <1ms" do
+    assert_equal "<1ms", format_duration_from_ms(0.004)
+    assert_equal "<1ms", format_duration_from_ms(0.04)
+    assert_equal "<1ms", format_duration_from_ms(0.999)
+    assert_equal "<1ms", format_duration_from_ms(0.9999)
   end
 
   test "format_duration_from_ms at the edges of each unit" do
