@@ -49,6 +49,15 @@ class ActiveSupport::TestCase
     end
   end
 
+  # The role dokku-review-pg and managed hosts hand an app: a plain CREATE USER,
+  # without pg_read_all_settings, pg_read_all_stats or EXECUTE on
+  # pg_stat_statements_reset. The transactional test rolls the role and the
+  # SET LOCAL back afterwards.
+  def become_unprivileged_role(database)
+    database.connection.execute("CREATE ROLE peek_unprivileged NOLOGIN")
+    database.connection.execute("SET LOCAL ROLE peek_unprivileged")
+  end
+
   # Tagged the way Rails' query_log_tags writes them.
   def sleeping_query(seconds = 30, controller: "posts", action: "index")
     "SELECT pg_sleep(#{seconds}) /*action='#{action}',application='Dummy',controller='#{controller}'*/"

@@ -35,6 +35,20 @@ class PgPeek::PgStatStatementsTest < ActiveSupport::TestCase
     end
   end
 
+  test "preloaded? asks the module itself when the role may not read the setting" do
+    skip_unless_usable(@pg_stat_statements)
+
+    become_unprivileged_role(@database)
+    connection = @database.connection
+
+    limited = PgPeek::PgStatStatements.new(database: @database)
+
+    assert limited.preloaded?
+    assert limited.usable?
+    # The failed SHOW must not have aborted the surrounding transaction.
+    assert_equal 1, connection.select_value("SELECT 1")
+  end
+
   test "usable? is false when the extension is installed but not preloaded" do
     skip "pg_stat_statements not available on this server" unless @pg_stat_statements.available?
 

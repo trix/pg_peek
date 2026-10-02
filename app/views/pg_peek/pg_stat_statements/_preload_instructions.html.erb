@@ -11,7 +11,11 @@
   <footer>
     <small>
       A server restart is required — this setting cannot be reloaded.
-      Currently loaded: <code><%= pg_stat_statements.shared_preload_libraries.presence || "(none)" %></code>
+      <% if pg_stat_statements.shared_preload_libraries %>
+        Currently loaded: <code><%= pg_stat_statements.shared_preload_libraries.presence || "(none)" %></code>
+      <% else %>
+        This role may not read <code>shared_preload_libraries</code>; the module itself reported it is not loaded.
+      <% end %>
     </small>
   </footer>
 </article>
