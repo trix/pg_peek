@@ -94,6 +94,20 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
   end
 
   # format_inline_cache_stats tests
+  test "stats_since_link marks statistics under an hour old as provisional" do
+    link = stats_since_link(PgPeek::Database.find("primary"), 10.minutes.ago)
+
+    assert_includes link, 'class="provisional"'
+    assert_includes link, 'title="figures may not be representative yet"'
+  end
+
+  test "stats_since_link leaves older statistics unmarked" do
+    link = stats_since_link(PgPeek::Database.find("primary"), 2.hours.ago)
+
+    assert_not_includes link, "provisional"
+    assert_includes link, 'title="figures are cumulative since the last pg_stat_statements reset"'
+  end
+
   test "format_inline_cache_stats shows both ratios" do
     result = format_inline_cache_stats(98.5, 95.2)
     assert_equal "H: 98.5% I: 95.2%", result

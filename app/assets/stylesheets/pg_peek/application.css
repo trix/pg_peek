@@ -353,6 +353,7 @@ footer.status button:hover { color: var(--fg); }
 
 .vitals { margin: 0 0 1rem; }
 .vitals span + span::before { content: " · "; color: var(--line); }
+a.provisional { color: color-mix(in srgb, var(--warn) 70%, var(--dim)); }
 
 .panels {
   display: grid;

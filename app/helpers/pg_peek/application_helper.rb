@@ -96,10 +96,15 @@ module PgPeek::ApplicationHelper
 
   # Every pg_stat_statements figure is cumulative since the last reset. Each
   # page says so in its header and links to the overview block that resets it.
+  # Within the first hour the figures cover too little to go by, and the link
+  # is marked provisional.
   def stats_since_link(database, reset_at)
+    provisional = reset_at && reset_at > 1.hour.ago
+
     link_to "stats since #{format_time_ago(reset_at)}",
             database_path(database, anchor: "pg_stat_statements"),
-            title: "figures are cumulative since the last pg_stat_statements reset"
+            class: ("provisional" if provisional),
+            title: provisional ? "figures may not be representative yet" : "figures are cumulative since the last pg_stat_statements reset"
   end
 
   # Format cache hit ratio for inline display

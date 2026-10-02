@@ -91,11 +91,6 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
         items << { text: "#{used} of #{max} connections in use", href: activity }
       end
 
-      if @stats_reset_at && @stats_reset_at > 1.hour.ago
-        items << { text: "statistics were reset #{helpers.time_ago_in_words(@stats_reset_at)} ago -- figures may not be representative yet",
-                   href: database_path(@database, anchor: "pg_stat_statements") }
-      end
-
       items
     end
 end

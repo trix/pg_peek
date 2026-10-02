@@ -85,6 +85,23 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul.attention li a[href='#{pg_peek.database_indexes_path(database)}']", count: 0
   end
 
+  test "show marks young statistics in the header instead of the attention list" do
+    database = PgPeek::Database.find("primary")
+    skip_unless_usable(PgPeek::PgStatStatements.new(database: database))
+    new_stats = PgPeek::PgStatStatements.method(:new)
+    young_stats = lambda do |**args|
+      new_stats.call(**args).tap { |stats| stats.define_singleton_method(:reset_at) { 10.minutes.ago } }
+    end
+
+    PgPeek::PgStatStatements.stub(:new, young_stats) do
+      get pg_peek.database_path(database)
+    end
+
+    assert_response :success
+    assert_select ".vitals a.provisional[title='figures may not be representative yet']", text: /stats since 10 minutes ago/
+    assert_select "ul.attention li", text: /statistics were reset/, count: 0
+  end
+
   test "show flags a cache hit ratio below the threshold" do
     database = PgPeek::Database.find("primary")
     database.define_singleton_method(:vitals) { { "cache_hit_ratio" => "42.0" } }
