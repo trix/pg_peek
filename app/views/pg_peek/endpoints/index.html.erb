@@ -13,10 +13,20 @@
     </p>
   </article>
 <% else %>
+  <input type="search"
+         placeholder="filter endpoints… (press / to focus)"
+         data-filter-input
+         data-filter-noun="endpoint"
+         autofocus
+         autocomplete="off">
+  <p class="dim" data-filter-count></p>
+
   <%= render "pg_peek/reports/report",
              report: @report,
              link_column: :endpoint,
              link: ->(row) { endpoint_path(@database, row["endpoint"]) } %>
+
+  <p class="dim" data-filter-empty hidden>No endpoints match that filter.</p>
 
   <p class="dim">
     <strong>q/req</strong> is an estimate: the request count is inferred from the

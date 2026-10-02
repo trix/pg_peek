@@ -22,13 +22,16 @@ class EndpointsControllerTest < ActionDispatch::IntegrationTest
     assert_select "tbody tr", minimum: 1
   end
 
-  test "index links a namespaced endpoint to its page" do
+  test "index links a namespaced endpoint to its page and offers a filter" do
     skip_unless_usable(@pg_stat_statements)
 
     get "/admin/posts"
     get pg_peek.database_endpoints_path(@database)
 
     assert_response :success
+    assert_select "input[data-filter-input][data-filter-noun='endpoint']"
+    assert_select "[data-filter-count]"
+    assert_select "[data-filter-empty]"
     assert_select "a[href='/pg_peek/databases/primary/endpoints/admin/posts/index']", text: "admin/posts#index"
   end
 
