@@ -1,0 +1,17 @@
+<div class="toolbar">
+  <h1><code class="name"><%= @endpoint %></code></h1>
+  <%= link_to "← endpoints", database_endpoints_path(@database) %>
+</div>
+
+<% if @report.empty? %>
+  <article aria-label="No queries found">
+    <header>No queries found for this endpoint</header>
+    <p>This could mean:</p>
+    <ul>
+      <li>The endpoint hasn't executed any database queries since statistics were last reset</li>
+      <li>The endpoint's queries are not among the top outliers</li>
+    </ul>
+  </article>
+<% else %>
+  <%= render "pg_peek/reports/report", report: @report %>
+<% end %>

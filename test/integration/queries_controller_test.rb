@@ -37,7 +37,7 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select "a[href='#{pg_peek.database_endpoints_path(@database)}']", text: "posts#index"
+    assert_select "a[href='/pg_peek/databases/primary/endpoints/posts/index']", text: "posts#index"
     assert_select "details.tags summary", text: "tags"
     assert_select "details.tags pre", text: /controller: posts/
   end

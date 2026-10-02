@@ -30,16 +30,23 @@ module PgPeek::ApplicationHelper
     sql.gsub(SQLCOMMENTER_PATTERN, "").strip
   end
 
-  # Where a query's SQLcommenter tags point, if anywhere: a job's own page,
-  # or the endpoints list for a controller/action (there is no per-endpoint
-  # page to link into yet, so this lands on the list rather than one row of it).
+  # Where a query's SQLcommenter tags point, if anywhere: a job's own page, or
+  # a controller/action's own page. A controller without an action has no page,
+  # so it lands on the endpoints list.
   def sqlcommenter_href(database, tags)
     return database_job_path(database, tags["job"]) if tags["job"].present?
 
     controller = tags["namespaced_controller"] || tags["controller"]
-    return database_endpoints_path(database) if controller.present?
+    return nil if controller.blank?
+    return database_endpoints_path(database) if tags["action"].blank?
 
-    nil
+    endpoint_path(database, "#{controller}##{tags["action"]}")
+  end
+
+  # An endpoint's page, from its controller#action name.
+  def endpoint_path(database, endpoint)
+    controller, action = endpoint.split("#", 2)
+    database_endpoint_path(database, endpoint_controller: controller, endpoint_action: action)
   end
 
   # Format a rate with auto-scaled units based on magnitude

@@ -50,7 +50,9 @@ Rails.application.configure do
   # serves are only reachable with query log tags enabled.
   config.active_record.query_log_tags_enabled = true
   config.active_record.query_log_tags_format = :sqlcommenter
-  config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
+  # Both controller tags, so Admin::PostsController's queries read
+  # controller='posts' as PostsController's do.
+  config.active_record.query_log_tags = [ :application, :controller, :namespaced_controller, :action, :job ]
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true

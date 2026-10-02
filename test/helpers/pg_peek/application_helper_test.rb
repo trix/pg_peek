@@ -138,10 +138,26 @@ class PgPeek::ApplicationHelperTest < ActionView::TestCase
     assert_equal database_job_path(database, "PostAnalyticsJob"), result
   end
 
-  test "sqlcommenter_href links a controller tag to the endpoints list" do
+  test "sqlcommenter_href links a controller and action to the endpoint page" do
     database = PgPeek::Database.find("primary")
 
     result = sqlcommenter_href(database, { "controller" => "posts", "action" => "index" })
+
+    assert_equal "/pg_peek/databases/primary/endpoints/posts/index", result
+  end
+
+  test "sqlcommenter_href prefers the namespaced controller" do
+    database = PgPeek::Database.find("primary")
+
+    result = sqlcommenter_href(database, { "controller" => "posts", "namespaced_controller" => "admin/posts", "action" => "index" })
+
+    assert_equal "/pg_peek/databases/primary/endpoints/admin/posts/index", result
+  end
+
+  test "sqlcommenter_href links a controller without an action to the endpoints list" do
+    database = PgPeek::Database.find("primary")
+
+    result = sqlcommenter_href(database, { "controller" => "posts" })
 
     assert_equal database_endpoints_path(database), result
   end

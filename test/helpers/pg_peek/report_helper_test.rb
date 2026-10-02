@@ -57,10 +57,10 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_includes markup, ">X<"
   end
 
-  test "links a sql cell's controller tag to the endpoints list" do
+  test "links a sql cell's controller tag to the endpoint page" do
     markup = cell(:query, 1)
 
-    assert_includes markup, %(href="#{database_endpoints_path(@report.database)}")
+    assert_includes markup, %(href="/pg_peek/databases/primary/endpoints/posts/index")
     assert_includes markup, ">posts#index<"
   end
 
