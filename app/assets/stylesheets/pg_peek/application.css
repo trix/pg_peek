@@ -149,6 +149,10 @@ pre {
 
 pre code { background: none; border: 0; padding: 0; }
 
+/* Names from the data (a job class, a table) keep their case inside the
+   lowercase headings. */
+.name { text-transform: none; }
+
 /* Tables ------------------------------------------------------------------ */
 
 .scroll { overflow-x: auto; }

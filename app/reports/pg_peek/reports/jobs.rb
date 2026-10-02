@@ -16,6 +16,10 @@ class PgPeek::Reports::Jobs < PgPeek::Report
       rows = pg_stat_statements.jobs
       return [] if rows.blank?
 
-      rows.each { |row| row["share"] = row["total_exec_time_ms"] }
+      rows.each do |row|
+        # The job tag arrives url-encoded: Reports%3A%3ADigestJob.
+        row["job_class"] = CGI.unescape(row["job_class"].to_s)
+        row["share"] = row["total_exec_time_ms"]
+      end
     end
 end

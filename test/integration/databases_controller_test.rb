@@ -60,6 +60,16 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     assert_select "section#pg_stat_statements p", text: /also clears queue and analytics/
   end
 
+  test "show names a namespaced job by its class name in the jobs panel" do
+    database = PgPeek::Database.find("primary")
+    skip_unless_usable(PgPeek::PgStatStatements.new(database: database))
+    Reports::PostSummaryJob.perform_now
+
+    get pg_peek.database_path(database)
+
+    assert_select "td", text: "Reports::PostSummaryJob"
+  end
+
   test "show flags unused indexes in attention" do
     database = PgPeek::Database.find("primary")
     database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")
