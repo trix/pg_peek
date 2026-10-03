@@ -93,6 +93,37 @@ class PgPeek::PgStatStatements
     Time.zone.parse(value.to_s) if value.present?
   end
 
+  # How many statements the server dropped since the last reset because the
+  # table was full (pg_stat_statements.max). Above zero, every total is an
+  # undercount: whatever was dropped took its calls and time with it.
+  def dealloc
+    return unless usable?
+
+    connection.select_value(PgPeek::QueryLoader.mark(<<~SQL)).to_i
+      SELECT dealloc FROM pg_stat_statements_info
+    SQL
+  end
+
+  # The table is shared by every database on the server, so max is measured
+  # against all of them, not just this one.
+  def server_statement_count
+    return unless usable?
+
+    connection.select_value(PgPeek::QueryLoader.mark(<<~SQL)).to_i
+      SELECT count(*) FROM pg_stat_statements
+    SQL
+  end
+
+  # pg_stat_statements.* settings, by name without the prefix.
+  def settings
+    return {} unless usable?
+
+    connection.select_rows(PgPeek::QueryLoader.mark(<<~SQL)).to_h
+      SELECT substr(name, length('pg_stat_statements.') + 1), setting
+      FROM pg_settings WHERE name LIKE 'pg_stat_statements.%' ORDER BY name
+    SQL
+  end
+
   def outliers
     return unless usable?
 

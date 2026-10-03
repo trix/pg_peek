@@ -54,10 +54,7 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: /endpoints/
     assert_select "h2", text: /slowest queries/
     assert_select "h2", text: "attention"
-    assert_select ".vitals a[href='#{pg_peek.database_path(database, anchor: "pg_stat_statements")}']", text: /stats since/
-    assert_select "section#pg_stat_statements form[action='#{pg_peek.reset_database_pg_stat_statements_path(database)}']"
-    # The dummy keeps all its databases on one server, as a review app would.
-    assert_select "section#pg_stat_statements p", text: /also clears queue and analytics/
+    assert_select ".vitals a[href='#{pg_peek.database_pg_stat_statements_path(database)}']", text: /stats since/
   end
 
   test "show names a namespaced job by its class name in the jobs panel" do

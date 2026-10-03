@@ -24,13 +24,6 @@
         collecting, so this page is working &mdash; there is simply nothing in it
         yet. Jobs appear as they execute their first database query.
       </p>
-      <% if @stats_reset_at %>
-        <p>
-          Statistics were last reset <strong><%= format_time_ago(@stats_reset_at) %></strong>
-          (<%= @stats_reset_at %>), so anything that ran before then is gone.
-          Restarting PostgreSQL clears them too.
-        </p>
-      <% end %>
     </article>
   <% end %>
 <% else %>

@@ -10,7 +10,7 @@ PgPeek::Engine.routes.draw do
     resource :activity, only: [ :show ], controller: "activity"
     resources :jobs, only: [ :index, :show ], param: :job_class
 
-    resource :pg_stat_statements, only: [] do
+    resource :pg_stat_statements, only: [ :show ] do
       delete :reset
     end
   end
