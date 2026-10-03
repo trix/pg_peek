@@ -5,12 +5,21 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     @database = PgPeek::Database.find("primary")
   end
 
+  test "index lists every table, each linking to its page" do
+    get pg_peek.database_tables_path(@database)
+
+    assert_response :success
+    assert_select "h1", text: "tables"
+    assert_select "input[data-filter-input][data-filter-noun=table]"
+    assert_select "a[href='#{pg_peek.database_table_path(@database, "posts")}']", text: "posts"
+  end
+
   test "show renders table detail page for existing table" do
     get pg_peek.database_table_path(@database, "posts")
 
     assert_response :success
     assert_select "h1", text: "posts"
-    assert_select "a[href='#{pg_peek.database_path(@database, anchor: "tables")}']", text: /tables/
+    assert_select "a[href='#{pg_peek.database_tables_path(@database)}']", text: /tables/
   end
 
   test "show displays cache performance section" do
@@ -55,12 +64,5 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
   test "show returns 404 for non-existent database" do
     get pg_peek.database_table_path("nonexistent_db", "posts")
     assert_response :not_found
-  end
-
-  test "database show page links each table to its detail page" do
-    get pg_peek.database_path(@database)
-
-    assert_response :success
-    assert_select "a[href='#{pg_peek.database_table_path(@database, 'posts')}']", text: "posts"
   end
 end

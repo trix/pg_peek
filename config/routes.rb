@@ -1,7 +1,7 @@
 PgPeek::Engine.routes.draw do
   resources :databases, only: [ :index, :show ] do
     resources :queries, only: [ :index ]
-    resources :tables, only: [ :show ], param: :name
+    resources :tables, only: [ :index, :show ], param: :name
     resources :endpoints, only: [ :index ]
     # admin/posts#index lives at endpoints/admin/posts/index: the slashes of a
     # namespace stay as they are, and no # needs encoding.

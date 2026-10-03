@@ -21,7 +21,6 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
   def show
     @database = PgPeek::Database.find(params[:id]) or raise ActiveRecord::RecordNotFound, "Database not found"
     @pg_stat_statements = PgPeek::PgStatStatements.new(database: @database)
-    @tables = PgPeek::Reports::Tables.new(database: @database)
     @vitals = @database.vitals
     @stats_reset_at = @pg_stat_statements.reset_at
     @sessions = PgPeek::Reports::Sessions.new(database: @database)

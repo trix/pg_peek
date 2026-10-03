@@ -1,0 +1,18 @@
+<div class="toolbar">
+  <h1>tables</h1>
+</div>
+
+<input type="search"
+       placeholder="filter tables… (press / to focus)"
+       data-filter-input
+       data-filter-noun="table"
+       autofocus
+       autocomplete="off">
+<p class="dim" data-filter-count></p>
+
+<%= render "pg_peek/reports/report",
+           report: @tables,
+           link_column: :name,
+           link: ->(row) { database_table_path(@database, row["name"]) } %>
+
+<p class="dim" data-filter-empty hidden>No tables match that filter.</p>

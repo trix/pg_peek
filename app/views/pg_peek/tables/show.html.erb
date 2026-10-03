@@ -1,6 +1,6 @@
 <div class="toolbar">
   <h1><code class="name"><%= @table.name %></code></h1>
-  <%= link_to "← tables", database_path(@database, anchor: "tables") %>
+  <%= link_to "← tables", database_tables_path(@database) %>
 </div>
 
 <% seconds_elapsed = @table.seconds_since_reset %>

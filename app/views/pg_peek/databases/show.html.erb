@@ -107,23 +107,6 @@ end</code></pre>
                  limit: PgPeek::DatabasesController::OVERVIEW_ROWS %>
     <% end %>
   </section>
-
-  <section class="wide" id="tables" data-filter>
-    <h2>tables (<%= @tables.rows.size %>)</h2>
-    <input type="search"
-           placeholder="filter tables… (press / to focus)"
-           data-filter-input
-           data-filter-noun="table"
-           autocomplete="off">
-    <p class="dim" data-filter-count></p>
-
-    <%= render "pg_peek/reports/report",
-               report: @tables,
-               link_column: :name,
-               link: ->(row) { database_table_path(@database, row["name"]) } %>
-
-    <p class="dim" data-filter-empty hidden>No tables match that filter.</p>
-  </section>
 </div>
 
 <% if @pg_stat_statements.usable? %>
