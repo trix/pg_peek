@@ -50,7 +50,7 @@ module PgPeek::ReportHelper
   # link into the page that already aggregates this exact query across every
   # call site) and every raw tag behind a disclosure, for the rest.
   def sql_cell(report, sql)
-    code = tag.code(strip_sqlcommenter(sql).squish, class: "sql")
+    code = tag.code(PgPeek::SqlFormat.format(strip_sqlcommenter(sql)), class: "sql", data: { clamp: true })
     tags = PgPeek::SqlComment.tags(sql)
     return code if tags.empty?
 
