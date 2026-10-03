@@ -1,4 +1,4 @@
-// pg_peek — no framework, no CDN, no import map. Three small behaviours.
+// pg_peek — no framework, no CDN, no import map. A few small behaviours.
 (function () {
   "use strict";
 
@@ -112,6 +112,29 @@
     });
   }
 
+  // Long queries --------------------------------------------------------------
+  // Clamped to their first lines by CSS. Measured here, so only a query that
+  // is actually longer gets the toggle.
+  function initClamp() {
+    document.querySelectorAll("[data-clamp]").forEach(function (code) {
+      code.classList.add("clamped");
+      if (code.scrollHeight <= code.clientHeight) {
+        code.classList.remove("clamped");
+        return;
+      }
+
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "clamp-toggle";
+      button.textContent = "show all";
+      button.addEventListener("click", function () {
+        var expanded = code.classList.toggle("expanded");
+        button.textContent = expanded ? "show less" : "show all";
+      });
+      code.insertAdjacentElement("afterend", button);
+    });
+  }
+
   // Database switcher -------------------------------------------------------
   function initSwitcher() {
     document.querySelectorAll("[data-switcher]").forEach(function (select) {
@@ -135,6 +158,7 @@
     initTheme();
     initFilter();
     initConfirm();
+    initClamp();
     initSwitcher();
     initReload();
   }

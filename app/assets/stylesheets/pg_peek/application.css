@@ -226,7 +226,30 @@ tbody th + td { text-align: right; }
 }
 .qualified .namespace > span { direction: ltr; unicode-bidi: embed; }
 .qualified .leaf { flex-shrink: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.sql { word-break: break-all; white-space: pre-wrap; background: none; border: 0; padding: 0; }
+/* Formatted one clause per line (SqlFormat); a line longer than the cell
+   wraps at spaces and breaks inside a word only when nothing else fits. */
+.sql { display: block; overflow-wrap: anywhere; white-space: pre-wrap; background: none; border: 0; padding: 0; }
+
+/* A long query shows its first lines, with a toggle for the rest. The script
+   adds the class only where the query is longer, so short ones stay as they
+   are, and without it every query shows in full. */
+.sql.clamped:not(.expanded) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+button.clamp-toggle {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--dim);
+  font-size: inherit;
+}
+
+button.clamp-toggle:hover { color: var(--fg); }
 
 /* What issued a query, from its SQLcommenter tags: a link line under the SQL,
    plus every raw tag behind a disclosure. The page-level details/summary
