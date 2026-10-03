@@ -18,7 +18,7 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "article[aria-label='Extension pg_stat_statements is not preloaded']", count: 0
     # The reset lives on the overview; this page only points at it.
     assert_select "form[action='#{pg_peek.reset_database_pg_stat_statements_path(@database)}']", count: 0
-    assert_select "a[href='#{pg_peek.database_path(@database, anchor: "pg_stat_statements")}']", text: /stats since/
+    assert_select "a[href='#{pg_peek.database_pg_stat_statements_path(@database)}']", text: /stats since/
   end
 
   test "index links a query's SQLcommenter tags to their source and shows the raw tags" do

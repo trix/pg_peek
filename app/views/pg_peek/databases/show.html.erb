@@ -109,45 +109,6 @@ end</code></pre>
   </section>
 </div>
 
-<% if @pg_stat_statements.usable? %>
-  <section id="pg_stat_statements">
-    <h2>pg_stat_statements <%= @pg_stat_statements.installed_version %></h2>
-    <p class="dim">
-      Queries, endpoints and jobs are cumulative since
-      <%= @stats_reset_at.strftime("%Y-%m-%d %H:%M:%S %Z") %> (<%= format_time_ago(@stats_reset_at) %>),
-      <%= pluralize(number_with_delimiter(@pg_stat_statements.statement_count), "statement") %> tracked.
-      A reset starts a fresh window: exact counts and attribution, at the
-      price of the history so far.
-      <% peers = @database.server_peers %>
-      <% if peers.any? %>
-        It also clears <%= peers.map(&:name).to_sentence %>, which
-        <%= peers.one? ? "shares" : "share" %> this server: PostgreSQL keeps
-        one reset time for all of them.
-      <% end %>
-    </p>
-    <%= button_to "reset statistics",
-                  reset_database_pg_stat_statements_path(@database),
-                  method: :delete,
-                  class: "danger",
-                  disabled: !@pg_stat_statements.resettable?,
-                  form_class: "inline",
-                  form: { data: { confirm: "Reset pg_stat_statements? This clears statement statistics for every database on this server." } } %>
-    <% unless @pg_stat_statements.resettable? %>
-      <p class="dim">
-        <%= @connection_summary["username"] %> may not reset the statistics: the extension
-        allows it only to superusers and roles granted it. To allow it:
-      </p>
-      <pre><code>GRANT EXECUTE ON FUNCTION pg_stat_statements_reset TO <%= @connection_summary["username"] %>;</code></pre>
-    <% end %>
-    <% if @pg_stat_statements.outdated? %>
-      <p class="dim">
-        Version <%= @pg_stat_statements.default_version %> is available:
-        <code>ALTER EXTENSION pg_stat_statements UPDATE;</code>
-      </p>
-    <% end %>
-  </section>
-<% end %>
-
 <details>
   <summary>database details</summary>
   <pre>name: <%= @database.name %>

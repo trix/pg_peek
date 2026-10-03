@@ -1,5 +1,6 @@
 <div class="toolbar">
   <h1><code class="name"><%= @job_class %></code></h1>
+  <small class="dim"><%= stats_since_link(@database, @pg_stat_statements.reset_at) %></small>
   <%= link_to "← jobs", database_jobs_path(@database) %>
 </div>
 
