@@ -69,7 +69,7 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 - **`Table`** (`app/models/pg_peek/table.rb`): Per-table statistics from `pg_stat_user_tables`/`pg_statio_user_tables` - cache hit ratios, scan counts, dead tuple ratio, vacuum/analyze history. `Table.inline_stats_for` batch-fetches cache ratios for the tables list in one round trip.
 
-- **`PgStatStatements`** (`app/models/pg_peek/pg_stat_statements.rb`): Wraps the PostgreSQL `pg_stat_statements` extension. Checks installation status, installs/upgrades the extension, fetches outliers (slowest queries) and per-job/endpoint breakdowns, resets statistics.
+- **`PgStatStatements`** (`app/models/pg_peek/pg_stat_statements.rb`): Wraps the PostgreSQL `pg_stat_statements` extension. Checks installation status and whether the installed version is outdated, picks the query set by installed version (1.11 renamed the block timing columns), fetches outliers (slowest queries) and per-job/endpoint breakdowns, resets statistics.
 
 - **`SqlComment`** (`app/models/pg_peek/sql_comment.rb`): Parses a query's trailing SQLcommenter comment (`/*controller='posts',action='index'*/`) into a tags hash (`.tags`) and reduces it to what issued the query (`.label`: a job name, or `controller#action`). The one parser both the Sessions report and the view layer use, rather than two that used to disagree.
 

@@ -120,4 +120,23 @@ class PgPeek::PgStatStatementsTest < ActiveSupport::TestCase
     assert_kind_of Time, analytics_stat.reset_at
     assert_in_delta Time.zone.parse(expected.to_s), analytics_stat.reset_at, 1
   end
+
+  test "outliers reads a server upgraded to 17 without updating the extension" do
+    skip_unless_usable(@pg_stat_statements)
+    skip "needs PostgreSQL 17 or later" if @database.major_version < 17
+
+    # Before 1.11 the columns were blk_read_time/blk_write_time, which is what a
+    # server keeps after pg_upgrade until ALTER EXTENSION ... UPDATE. The
+    # transactional test rolls the recreate back afterwards.
+    connection = @database.connection
+    connection.execute("DROP EXTENSION pg_stat_statements")
+    connection.execute("CREATE EXTENSION pg_stat_statements VERSION '1.10'")
+
+    outdated = PgPeek::PgStatStatements.new(database: @database)
+
+    assert_equal "1.10", outdated.installed_version
+    assert_kind_of Array, outdated.outliers
+    assert_kind_of Array, outdated.outliers_by_job("SomeJob")
+    assert_kind_of Array, outdated.outliers_by_endpoint("posts#index")
+  end
 end

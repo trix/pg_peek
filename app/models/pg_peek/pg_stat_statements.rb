@@ -128,7 +128,7 @@ class PgPeek::PgStatStatements
     return unless usable?
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers",
-                                      pg_version: database.major_version,
+                                      pg_version: query_pg_version,
                                       limit: PgPeek.config.outliers_limit)
     result = connection.execute(query)
     result.to_a
@@ -147,7 +147,7 @@ class PgPeek::PgStatStatements
     return unless usable?
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/endpoints",
-                                      pg_version: database.major_version,
+                                      pg_version: query_pg_version,
                                       limit: PgPeek.config.outliers_limit)
     connection.execute(query).to_a
   end
@@ -156,7 +156,7 @@ class PgPeek::PgStatStatements
     return unless usable?
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/jobs",
-                                      pg_version: database.major_version)
+                                      pg_version: query_pg_version)
     result = connection.execute(query)
     result.to_a
   end
@@ -170,7 +170,7 @@ class PgPeek::PgStatStatements
     pattern = "%job='#{encoded_job}'%"
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers_by_job",
-                                      pg_version: database.major_version,
+                                      pg_version: query_pg_version,
                                       job_pattern: connection.quote(pattern),
                                       limit: PgPeek.config.outliers_limit)
     result = connection.execute(query)
@@ -186,7 +186,7 @@ class PgPeek::PgStatStatements
     controller, action = endpoint.split("#", 2).map { |part| ERB::Util.url_encode(part) }
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers_by_endpoint",
-                                      pg_version: database.major_version,
+                                      pg_version: query_pg_version,
                                       controller: connection.quote(controller),
                                       action: connection.quote(action),
                                       limit: PgPeek.config.outliers_limit)
@@ -194,6 +194,18 @@ class PgPeek::PgStatStatements
   end
 
   private
+
+  # The view's columns follow the extension, not the server: 1.11, shipped with
+  # PostgreSQL 17, renamed blk_read_time to shared_blk_read_time. A server
+  # upgraded without ALTER EXTENSION ... UPDATE keeps the old columns, so it
+  # has to be read with the PostgreSQL 16 queries.
+  def query_pg_version
+    if Gem::Version.new(installed_version) < Gem::Version.new("1.11")
+      [ database.major_version, 16 ].min
+    else
+      database.major_version
+    end
+  end
 
   # pg_stat_statements_info() raises PG::ObjectNotInPrerequisiteState unless
   # the module was loaded at server start, and is readable by any role.

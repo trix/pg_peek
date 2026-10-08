@@ -142,6 +142,25 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul.attention li", text: /statistics were reset/, count: 0
   end
 
+  test "show links an outdated pg_stat_statements to its update" do
+    database = PgPeek::Database.find("primary")
+    skip_unless_usable(PgPeek::PgStatStatements.new(database: database))
+    new_stats = PgPeek::PgStatStatements.method(:new)
+    outdated_stats = lambda do |**args|
+      new_stats.call(**args).tap do |stats|
+        stats.define_singleton_method(:outdated?) { true }
+        stats.define_singleton_method(:default_version) { "9.9" }
+      end
+    end
+
+    PgPeek::PgStatStatements.stub(:new, outdated_stats) do
+      get pg_peek.database_path(database)
+    end
+
+    assert_response :success
+    assert_select ".vitals a.outdated[href='#{pg_peek.database_pg_stat_statements_path(database, anchor: "settings")}']", text: "9.9 available"
+  end
+
   test "show flags a cache hit ratio below the threshold" do
     database = PgPeek::Database.find("primary")
     database.define_singleton_method(:vitals) { { "cache_hit_ratio" => "42.0" } }
