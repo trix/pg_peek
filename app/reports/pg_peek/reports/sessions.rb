@@ -9,11 +9,17 @@ class PgPeek::Reports::Sessions < PgPeek::Report
 
   column :pid, align: :right
   column :state
+  # An idle connection's minutes are a pool keeping it open, not a query
+  # taking that long, so they are drawn quieter than a running query's.
   column :duration_ms, header: "for", align: :right, format: :duration_ms,
-         title: "Active: how long the current query has run. Idle in transaction: age of the open transaction. Idle: time since the last query finished."
+         title: "Active: how long the current query has run. Idle in transaction: age of the open transaction. Idle: time since the last query finished.",
+         dim: ->(row) { row["state"] == "idle" }
   column :wait, title: "What the session is waiting on: another session's lock, IO, its client -- or nothing, which means CPU"
   column :source, title: "Endpoint or job from the query's SQLcommenter tags, otherwise the application name"
-  column :query, format: :sql
+  # pg_stat_activity keeps the text of a session's last query after it has
+  # finished, which next to a long "for" reads as a query still running.
+  column :query, header: "last query", format: :sql,
+         title: "The session's most recent query: still running when active, already finished when idle."
 
   def active = rows.select { |row| row["state"] == "active" }
   def idle = rows.select { |row| row["state"] == "idle" }

@@ -9,7 +9,10 @@ class PgPeek::Column
 
   # bar: draw the value with a bar next to it, scaled against the largest value
   # in the column, so the biggest rows stand out without reading every figure.
-  def initialize(key, header: nil, align: :left, format: :text, title: nil, bar: false)
+  #
+  # dim: a proc given the row, true where the value is there for completeness
+  # rather than attention.
+  def initialize(key, header: nil, align: :left, format: :text, title: nil, bar: false, dim: nil)
     raise ArgumentError, "unknown alignment #{align.inspect}" unless ALIGNMENTS.include?(align)
 
     @key = key
@@ -18,6 +21,7 @@ class PgPeek::Column
     @format = format
     @title = title
     @bar = bar
+    @dim = dim
   end
 
   def header
@@ -25,6 +29,8 @@ class PgPeek::Column
   end
 
   def bar? = @bar
+
+  def dim?(row) = @dim ? !!@dim.call(row) : false
 
   def numeric?
     align == :right
