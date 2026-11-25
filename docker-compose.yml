@@ -48,8 +48,18 @@ services:
       # volume mounts one level up from where 15-17 mount it.
       - postgres18_data:/var/lib/postgresql
 
+  postgres19:
+    <<: *postgres-common
+    image: postgres:19-alpine
+    container_name: pg_peek_postgres19
+    ports:
+      - "5445:5432"
+    volumes:
+      - postgres19_data:/var/lib/postgresql
+
 volumes:
   postgres15_data:
   postgres16_data:
   postgres17_data:
   postgres18_data:
+  postgres19_data:

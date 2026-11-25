@@ -29,6 +29,9 @@ bin/test-pg17
 
 # PostgreSQL 18
 bin/test-pg18
+
+# PostgreSQL 19
+bin/test-pg19
 ```
 
 ## Testing
@@ -80,7 +83,7 @@ Concrete reports: `Databases`, `Tables`, `Queries` (and `JobQueries < Queries`, 
 
 ### Query Loading
 
-Raw SQL lives under `app/queries/pg_peek/pgNN/**/*.sql`, one directory per major Postgres version (15-18), loaded by `PgPeek::QueryLoader` (`lib/pg_peek/query_loader.rb`) using `database.major_version`. Reports and models call `QueryLoader.load("indexes/all", pg_version: ...)` rather than embedding SQL inline. New Postgres-version-specific behavior means adding a query file per version, not branching Ruby.
+Raw SQL lives under `app/queries/pg_peek/pgNN/**/*.sql`, one directory per major Postgres version (15-19), loaded by `PgPeek::QueryLoader` (`lib/pg_peek/query_loader.rb`) using `database.major_version`. Reports and models call `QueryLoader.load("indexes/all", pg_version: ...)` rather than embedding SQL inline. New Postgres-version-specific behavior means adding a query file per version, not branching Ruby.
 
 ### Controllers
 
