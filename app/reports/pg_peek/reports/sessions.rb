@@ -18,9 +18,8 @@ class PgPeek::Reports::Sessions < PgPeek::Report
   column :source, title: "Endpoint or job from the query's SQLcommenter tags, otherwise the application name"
   # pg_stat_activity keeps the text of a session's last query after it has
   # finished, which next to a long "for" reads as a query still running.
-  column :query, format: :sql,
-         title: "What the session is running. For an idle session: the last query it ran, already finished.",
-         caption: ->(row) { "last query" if row["state"].to_s.start_with?("idle") }
+  column :query, header: "last query", format: :sql,
+         title: "The session's most recent query: still running when active, already finished when idle."
 
   def active = rows.select { |row| row["state"] == "active" }
   def idle = rows.select { |row| row["state"] == "idle" }

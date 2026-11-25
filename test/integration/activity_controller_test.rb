@@ -46,7 +46,7 @@ class ActivityControllerTest < ActionDispatch::IntegrationTest
     assert_select "tr[data-filter-value='#{conn.backend_pid}']", text: /idle/
   end
 
-  test "show marks an idle session's query as its last and dims how long it has sat" do
+  test "show heads the query column as the last query and dims how long an idle session has sat" do
     idle = open_pg_session
     idle.exec("SELECT 1")
     running = open_pg_session
@@ -58,14 +58,9 @@ class ActivityControllerTest < ActionDispatch::IntegrationTest
 
     get pg_peek.database_activity_path(@database, idle: 1)
 
-    assert_select "tr[data-filter-value='#{idle.backend_pid}']" do
-      assert_select "td.num.dim", count: 1
-      assert_select "td div.dim", text: "last query"
-    end
-    assert_select "tr[data-filter-value='#{running.backend_pid}']" do
-      assert_select "td.dim", count: 0
-      assert_select "td div.dim", text: "last query", count: 0
-    end
+    assert_select "th", text: "last query"
+    assert_select "tr[data-filter-value='#{idle.backend_pid}'] td.num.dim", count: 1
+    assert_select "tr[data-filter-value='#{running.backend_pid}'] td.dim", count: 0
   end
 
   test "show refreshes only at the offered intervals" do
