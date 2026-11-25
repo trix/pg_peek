@@ -11,7 +11,8 @@ module PgPeek
     DEFAULT_UNUSED_INDEX_MIN_STATS_AGE = 1.day
     DEFAULT_UNUSED_INDEX_MIN_SIZE = 1.megabyte
 
-    attr_accessor :connections, :excluded_tables, :dead_tuple_warning_threshold, :outliers_limit,
+    attr_accessor :connections, :excluded_tables, :unattributed_queries,
+                  :dead_tuple_warning_threshold, :outliers_limit,
                   :cache_hit_warning_threshold, :long_query_warning_seconds,
                   :idle_in_transaction_warning_seconds, :unused_index_min_stats_age,
                   :unused_index_min_size, :public_dashboard
@@ -20,6 +21,7 @@ module PgPeek
     def initialize
       @connections = {}
       @excluded_tables = DEFAULT_EXCLUDED_TABLES.dup
+      @unattributed_queries = []
       @dead_tuple_warning_threshold = DEFAULT_DEAD_TUPLE_WARNING_THRESHOLD
       @outliers_limit = DEFAULT_OUTLIERS_LIMIT
       @cache_hit_warning_threshold = DEFAULT_CACHE_HIT_WARNING_THRESHOLD
