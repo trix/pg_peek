@@ -29,7 +29,8 @@ Rails.application.config.pg_peek.tap do |config|
   # first. Transaction control (BEGIN, COMMIT, NOTIFY, ...) is already left out.
   # A String is matched as it is; a Regexp is matched by PostgreSQL, in its
   # dialect (\y is a word boundary, not \b).
-  # config.unattributed_queries = [ '"good_jobs"', /FROM pg_locks/i ]
+  # config.unattributed_queries = [ '"good_jobs"', /pg_locks/i ] # GoodJob
+  # config.unattributed_queries = [ '"solid_queue_' ]             # Solid Queue
 
   # Maximum number of outlier queries to display.
   # config.outliers_limit = 20
