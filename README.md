@@ -197,6 +197,9 @@ bin/test-pg17
 
 # PostgreSQL 18
 bin/test-pg18
+
+# PostgreSQL 19
+bin/test-pg19
 ```
 
 ## Testing
