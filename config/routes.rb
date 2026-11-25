@@ -1,6 +1,8 @@
 PgPeek::Engine.routes.draw do
   resources :databases, only: [ :index, :show ] do
-    resources :queries, only: [ :index ]
+    resources :queries, only: [ :index ] do
+      get :shared, on: :collection
+    end
     resources :tables, only: [ :index, :show ], param: :name
     resources :endpoints, only: [ :index ]
     # admin/posts#index lives at endpoints/admin/posts/index: the slashes of a

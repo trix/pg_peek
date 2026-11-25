@@ -52,7 +52,7 @@ module PgPeek::ReportHelper
   def sql_cell(report, sql)
     code = tag.code(PgPeek::SqlFormat.format(strip_sqlcommenter(sql)), class: "sql", data: { clamp: true })
     tags = PgPeek::SqlComment.tags(sql)
-    return code if tags.empty?
+    return code if tags.empty? || !report.attributed?
 
     safe_join([ code, sql_source(report, tags), sql_tags(tags) ].compact)
   end

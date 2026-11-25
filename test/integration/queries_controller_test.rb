@@ -60,6 +60,50 @@ class QueriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "tbody td.num span[title='0.044 ms']", text: "<1ms"
   end
 
+  test "shared lists the statements without naming a source for them" do
+    listed = PgPeek::PgStatStatements.new(database: @database)
+    listed.define_singleton_method(:usable?) { true }
+    listed.define_singleton_method(:shared_statements) do
+      [ { "ncalls" => "23", "total_exec_time" => "00:00:02", "prop_exec_time" => "40.0%",
+          "avg_exec_ms" => "87", "query" => "COMMIT /*controller='posts',action='index'*/" } ]
+    end
+    listed.define_singleton_method(:shared_summary) do
+      { "statement_count" => 1, "calls" => 23, "exec_time_ms" => 2000.0, "all_exec_time_ms" => 5000.0 }
+    end
+
+    PgPeek::PgStatStatements.stub(:new, listed) do
+      get pg_peek.shared_database_queries_path(@database)
+    end
+
+    assert_response :success
+    assert_select "h1", text: "shared statements"
+    assert_select "p", text: /1 statement, 23 calls, 2\.00s of database time \(40\.0% of the total\)/
+    assert_select "td code.sql", text: /COMMIT/
+    # posts#index only happened to commit first.
+    assert_select "a", text: "posts#index", count: 0
+    assert_select "details.tags", count: 0
+  end
+
+  test "shared runs against the server" do
+    skip_unless_usable(@pg_stat_statements)
+
+    @database.connection.execute("NOTIFY peek_shared_page")
+    get pg_peek.shared_database_queries_path(@database)
+
+    assert_response :success
+    # Which statements make the list depends on what else ran; that some do is enough here.
+    assert_select "h1", text: "shared statements"
+    assert_select "tbody tr", minimum: 1
+  end
+
+  test "index points at the shared statements" do
+    skip_unless_usable(@pg_stat_statements)
+
+    get pg_peek.database_queries_path(@database)
+
+    assert_select "a[href='#{pg_peek.shared_database_queries_path(@database)}']"
+  end
+
   test "index renders preload instructions when the module is not preloaded" do
     not_preloaded = PgPeek::PgStatStatements.new(database: @database)
     not_preloaded.define_singleton_method(:preloaded?) { false }

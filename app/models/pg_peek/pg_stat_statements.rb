@@ -144,6 +144,28 @@ class PgPeek::PgStatStatements
     result.to_a
   end
 
+  # The statements the endpoint and job breakdowns leave out, as one list:
+  # what they cost is real, it only cannot be put under anyone's name.
+  def shared_statements
+    return unless usable?
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/shared_statements",
+                                      pg_version: query_pg_version,
+                                      attributable: attributable,
+                                      limit: PgPeek.config.outliers_limit)
+    connection.execute(query).to_a
+  end
+
+  # What the shared statements add up to, next to everything the database ran.
+  def shared_summary
+    return unless usable?
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/shared_summary",
+                                      pg_version: query_pg_version,
+                                      attributable: attributable)
+    connection.select_one(query)
+  end
+
   def statement_count
     return unless usable?
 

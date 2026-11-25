@@ -22,6 +22,20 @@ class EndpointsControllerTest < ActionDispatch::IntegrationTest
     assert_select "tbody tr", minimum: 1
   end
 
+  test "index says what the shared statements cost and links to them" do
+    skip_unless_usable(@pg_stat_statements)
+
+    # The request's own transaction statements are shared ones.
+    get "/posts"
+    ActiveRecord::Base.connection.execute("NOTIFY peek_endpoints_summary")
+    get pg_peek.database_endpoints_path(@database)
+
+    assert_response :success
+    assert_select "p[data-shared-summary]", text: /statements?, .* of database time/ do
+      assert_select "a[href='#{pg_peek.shared_database_queries_path(@database)}']"
+    end
+  end
+
   test "index links a namespaced endpoint to its page and offers a filter" do
     skip_unless_usable(@pg_stat_statements)
 

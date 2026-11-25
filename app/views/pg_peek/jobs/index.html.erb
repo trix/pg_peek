@@ -41,4 +41,6 @@
              link: ->(row) { database_job_path(@database, row["job_class"]) } %>
 
   <p class="dim" data-filter-empty hidden>No jobs match that filter.</p>
+
+  <%= render "pg_peek/queries/shared_summary", database: @database, summary: @pg_stat_statements.shared_summary %>
 <% end %>
