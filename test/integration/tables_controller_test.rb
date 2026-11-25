@@ -45,6 +45,13 @@ class TablesControllerTest < ActionDispatch::IntegrationTest
     assert_select "th", text: "dead tuples"
   end
 
+  test "show says since when the counts have been accumulating" do
+    get pg_peek.database_table_path(@database, "posts")
+
+    assert_response :success
+    assert_select "p.dim", text: /\Acounts since .+ ago\z/
+  end
+
   test "show displays maintenance section" do
     get pg_peek.database_table_path(@database, "posts")
 
