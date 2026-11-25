@@ -30,7 +30,7 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
     major_version = @database.major_version
 
     assert_kind_of Integer, major_version
-    assert major_version >= 14, "Expected PostgreSQL 14 or higher"
+    assert major_version >= 15, "Expected PostgreSQL 15 or higher"
   end
 
   test "major_version extracts first part of version" do
