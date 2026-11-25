@@ -1,6 +1,16 @@
 class PgPeek::PgStatStatements
   LIBRARY_NAME = "pg_stat_statements".freeze
 
+  # Transaction control and session housekeeping: issued from everywhere, so
+  # their tags never say who issued them. NOTIFY is here for a second reason:
+  # its payload is part of the statement, so each one is a row of its own,
+  # called once, which is exactly what the request estimate takes for "this
+  # endpoint was served once".
+  #
+  # A PostgreSQL regular expression, not a Ruby one: \M ends a word.
+  SHARED_STATEMENTS = '^\s*(BEGIN|START TRANSACTION|COMMIT|END|ROLLBACK|ABORT|SAVEPOINT|RELEASE|' \
+                      'PREPARE TRANSACTION|NOTIFY|LISTEN|UNLISTEN|SET|RESET|SHOW|DISCARD|DEALLOCATE)\M'.freeze
+
   attr_reader :database, :default_version, :installed_version
 
   def initialize(database:)
@@ -148,6 +158,7 @@ class PgPeek::PgStatStatements
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/endpoints",
                                       pg_version: query_pg_version,
+                                      attributable: attributable,
                                       limit: PgPeek.config.outliers_limit)
     connection.execute(query).to_a
   end
@@ -156,7 +167,8 @@ class PgPeek::PgStatStatements
     return unless usable?
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/jobs",
-                                      pg_version: query_pg_version)
+                                      pg_version: query_pg_version,
+                                      attributable: attributable)
     result = connection.execute(query)
     result.to_a
   end
@@ -172,6 +184,7 @@ class PgPeek::PgStatStatements
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers_by_job",
                                       pg_version: query_pg_version,
                                       job_pattern: connection.quote(pattern),
+                                      attributable: attributable,
                                       limit: PgPeek.config.outliers_limit)
     result = connection.execute(query)
     result.to_a
@@ -189,11 +202,33 @@ class PgPeek::PgStatStatements
                                       pg_version: query_pg_version,
                                       controller: connection.quote(controller),
                                       action: connection.quote(action),
+                                      attributable: attributable,
                                       limit: PgPeek.config.outliers_limit)
     connection.execute(query).to_a
   end
 
   private
+
+  # A condition that keeps only the statements whose tags say who issued them.
+  #
+  # pg_stat_statements keeps one row per query shape, with the text of
+  # whichever call it saw first, and comments are not part of the shape. So a
+  # statement the whole application issues carries the tags of one caller and
+  # the calls and time of all of them. In the endpoint and job breakdowns that
+  # is worse than missing: it is counted under the wrong name.
+  def attributable
+    conditions = [ "query !~* #{connection.quote(SHARED_STATEMENTS)}" ]
+
+    PgPeek.config.unattributed_queries.each do |pattern|
+      conditions << if pattern.is_a?(Regexp)
+        "query #{pattern.casefold? ? "!~*" : "!~"} #{connection.quote(pattern.source)}"
+      else
+        "strpos(query, #{connection.quote(pattern.to_s)}) = 0"
+      end
+    end
+
+    conditions.join(" AND ")
+  end
 
   # The view's columns follow the extension, not the server: 1.11, shipped with
   # PostgreSQL 17, renamed blk_read_time to shared_blk_read_time. A server

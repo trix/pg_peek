@@ -135,6 +135,34 @@ guessing — but you will be left waiting for a restart.
 A restart also clears all collected statistics, so expect an empty dashboard
 until your application has run for a while afterwards.
 
+### Statements shared across the application
+
+`pg_stat_statements` keeps one row per query shape, with the text of whichever
+call it saw first, and comments are not part of the shape. A statement the whole
+application issues therefore carries the SQLcommenter tags of one caller and
+the calls and time of all of them. In the endpoint and job breakdowns that is
+counted under the wrong name: one endpoint appears to enqueue every job in the
+application, or one job to spend its time on the queue's own locking.
+
+pg_peek leaves transaction control and session statements (`BEGIN`, `COMMIT`,
+`SAVEPOINT`, `NOTIFY`, `SET`, ...) out of the endpoint and job breakdowns for
+this reason. Name the rest yourself; a job queue's own tables are the usual
+case:
+
+```ruby
+# config/initializers/pg_peek.rb
+config.unattributed_queries = [
+  '"good_jobs"',     # a String is matched as it is, anywhere in the statement
+  /FROM pg_locks/i   # a Regexp is matched by PostgreSQL
+]
+```
+
+A Regexp is handed to PostgreSQL as its source, so write it in PostgreSQL's
+dialect: `\y` is a word boundary (`\b` is a backspace there), `\m` and `\M`
+begin and end a word, and `\A` and `\z` do not exist; use `^` and `$`.
+
+The queries page is not affected and keeps listing every statement.
+
 ### Requirements
 
 - Rails 8.1+

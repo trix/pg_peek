@@ -23,6 +23,14 @@ Rails.application.config.pg_peek.tap do |config|
   # Supports strings and regular expressions.
   config.excluded_tables = %w[schema_migrations ar_internal_metadata]
 
+  # Statements issued from all over the application, left out of the endpoint
+  # and job breakdowns. pg_stat_statements keeps one text per query shape, so
+  # such a statement would be counted under whichever endpoint or job ran it
+  # first. Transaction control (BEGIN, COMMIT, NOTIFY, ...) is already left out.
+  # A String is matched as it is; a Regexp is matched by PostgreSQL, in its
+  # dialect (\y is a word boundary, not \b).
+  # config.unattributed_queries = [ '"good_jobs"', /FROM pg_locks/i ]
+
   # Maximum number of outlier queries to display.
   # config.outliers_limit = 20
 

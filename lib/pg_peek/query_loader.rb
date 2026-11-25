@@ -48,8 +48,9 @@ module PgPeek
         end
 
         # Handle simple {{key}} replacements
+        # A block, so a backslash in the value is not read as a back-reference.
         variables.each do |key, value|
-          result = result.gsub("{{#{key}}}", value.to_s)
+          result = result.gsub("{{#{key}}}") { value.to_s }
         end
 
         result
