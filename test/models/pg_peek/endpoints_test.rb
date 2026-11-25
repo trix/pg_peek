@@ -103,6 +103,45 @@ class PgPeek::EndpointsTest < ActiveSupport::TestCase
     assert queries.any? { |query| query.start_with?("NOTIFY #{table}") }, "NOTIFY #{table} is not listed"
   end
 
+  test "shared statements lists what the breakdowns leave out, and only that" do
+    skip_unless_usable(@pg_stat_statements)
+
+    controller, table = unclaimed_names
+    tags = "/*action='index',controller='#{controller}'*/"
+    connection = @database.connection
+    connection.execute("CREATE TEMP TABLE #{table} (id integer)")
+    connection.execute("CREATE TEMP TABLE #{table}_queue (id integer)")
+    connection.execute("SELECT count(*) FROM #{table} #{tags}")
+    connection.execute("SELECT count(*) FROM #{table}_queue #{tags}")
+    connection.execute("NOTIFY #{table} #{tags}")
+
+    # Not the bare table name: CREATE TABLE mentions it as well.
+    shared = with_unattributed_queries([ "FROM #{table}_queue" ]) do
+      with_outliers_limit(10_000) { @pg_stat_statements.shared_statements }
+    end
+    mine = shared.map { |row| row["query"] }.select { |query| query.include?(table) }
+
+    assert_equal 2, mine.size
+    assert mine.any? { |query| query.start_with?("NOTIFY #{table}") }
+    assert mine.any? { |query| query.include?("FROM #{table}_queue") }
+  end
+
+  test "the shared summary grows by the statements that become shared" do
+    skip_unless_usable(@pg_stat_statements)
+
+    _, table = unclaimed_names
+    connection = @database.connection
+    connection.execute("CREATE TEMP TABLE #{table}_queue (id integer)")
+    2.times { connection.execute("SELECT count(*) FROM #{table}_queue") }
+
+    before = @pg_stat_statements.shared_summary
+    after = with_unattributed_queries([ "FROM #{table}_queue" ]) { @pg_stat_statements.shared_summary }
+
+    assert_equal before["statement_count"].to_i + 1, after["statement_count"].to_i
+    assert_equal before["calls"].to_i + 2, after["calls"].to_i
+    assert_operator after["exec_time_ms"].to_f, :<=, after["all_exec_time_ms"].to_f
+  end
+
   test "endpoints are named controller#action" do
     skip_unless_usable(@pg_stat_statements)
 

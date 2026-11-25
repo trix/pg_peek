@@ -139,9 +139,42 @@ class PgPeek::PgStatStatements
 
     query = PgPeek::QueryLoader.load("pg_stat_statements/outliers",
                                       pg_version: query_pg_version,
+                                      scope: "TRUE",
                                       limit: PgPeek.config.outliers_limit)
     result = connection.execute(query)
     result.to_a
+  end
+
+  # The statements the endpoint and job breakdowns leave out, as one list:
+  # what they cost is real, it only cannot be put under anyone's name.
+  def shared_statements
+    return unless usable?
+
+    query = PgPeek::QueryLoader.load("pg_stat_statements/outliers",
+                                      pg_version: query_pg_version,
+                                      scope: "NOT (#{attributable})",
+                                      limit: PgPeek.config.outliers_limit)
+    connection.execute(query).to_a
+  end
+
+  # What the shared statements add up to, next to everything the database ran.
+  def shared_summary
+    return unless usable?
+
+    connection.select_one(PgPeek::QueryLoader.mark(<<~SQL))
+      SELECT
+        count(*) FILTER (WHERE shared) AS statement_count,
+        COALESCE(sum(calls) FILTER (WHERE shared), 0) AS calls,
+        COALESCE(sum(total_exec_time) FILTER (WHERE shared), 0) AS exec_time_ms,
+        COALESCE(sum(total_exec_time), 0) AS all_exec_time_ms
+      FROM (
+        SELECT calls, total_exec_time, NOT (#{attributable}) AS shared
+        FROM pg_stat_statements
+        WHERE userid = (SELECT usesysid FROM pg_user WHERE usename = current_user LIMIT 1)
+          AND dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+          AND query NOT LIKE '%/* pg_peek */%'
+      ) statements
+    SQL
   end
 
   def statement_count

@@ -34,4 +34,6 @@
     conditional will read low. A value above
     <%= PgPeek::Reports::Endpoints::N_PLUS_ONE_THRESHOLD %> is the shape of an N+1.
   </p>
+
+  <%= render "pg_peek/queries/shared_summary", database: @database, summary: @pg_stat_statements.shared_summary %>
 <% end %>

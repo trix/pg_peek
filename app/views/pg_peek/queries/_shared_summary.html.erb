@@ -1,0 +1,8 @@
+<%# locals: (database:, summary:) %>
+<% if summary && summary["statement_count"].to_i > 0 %>
+  <p class="dim" data-shared-summary>
+    Not counted above: <%= shared_statements_total(summary) %>, issued from
+    everywhere and so not attributable.
+    <%= link_to "shared statements →", shared_database_queries_path(database) %>
+  </p>
+<% end %>

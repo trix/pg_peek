@@ -1,6 +1,7 @@
 <div class="toolbar">
   <h1>queries</h1>
   <small class="dim"><%= stats_since_link(@database, @pg_stat_statements.reset_at) %></small>
+  <%= link_to "shared statements →", shared_database_queries_path(@database) %>
 </div>
 
 <% if @queries.empty? %>

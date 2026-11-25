@@ -41,6 +41,9 @@ class PgPeek::Report
 
   def empty? = rows.empty?
 
+  # Whether the SQLcommenter tags on a statement say who issued it.
+  def attributed? = true
+
   def title = self.class.title
 
   # A bar is relative: it needs the extent of the column, not just the cell.

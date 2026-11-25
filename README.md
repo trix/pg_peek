@@ -161,7 +161,10 @@ A Regexp is handed to PostgreSQL as its source, so write it in PostgreSQL's
 dialect: `\y` is a word boundary (`\b` is a backspace there), `\m` and `\M`
 begin and end a word, and `\A` and `\z` do not exist; use `^` and `$`.
 
-The queries page is not affected and keeps listing every statement.
+What they cost is still worth seeing, so they are not dropped: the endpoints
+and jobs pages say how many statements were left out and how much database
+time they took, and link to a list of them (`queries/shared`), shown without a
+source. The queries page is not affected and keeps listing every statement.
 
 ### Requirements
 

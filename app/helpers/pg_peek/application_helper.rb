@@ -106,6 +106,17 @@ module PgPeek::ApplicationHelper
   # resets it.
   # Within the first hour the figures cover too little to go by, and the link
   # is marked provisional.
+  # "12 statements, 4,301 calls, 7.2h of database time (31.4% of the total)"
+  def shared_statements_total(summary)
+    exec_ms = summary["exec_time_ms"].to_f
+    all_ms = summary["all_exec_time_ms"].to_f
+    share = all_ms.positive? ? " (#{(exec_ms / all_ms * 100).round(1)}% of the total)" : ""
+
+    "#{pluralize(format_number(summary["statement_count"].to_i), "statement")}, " \
+      "#{pluralize(format_number(summary["calls"].to_i), "call")}, " \
+      "#{format_duration_from_ms(exec_ms)} of database time#{share}"
+  end
+
   def stats_since_link(database, reset_at)
     provisional = reset_at && reset_at > 1.hour.ago
 

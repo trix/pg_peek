@@ -1,0 +1,21 @@
+<div class="toolbar">
+  <h1>shared statements</h1>
+  <small class="dim"><%= stats_since_link(@database, @pg_stat_statements.reset_at) %></small>
+  <%= link_to "← queries", database_queries_path(@database) %>
+</div>
+
+<p class="dim">
+  Statements the whole application issues: transaction control, session
+  commands and whatever <code>config.unattributed_queries</code> names.
+  <code>pg_stat_statements</code> keeps the tags of only the first caller, so
+  they are left out of the endpoint and job breakdowns and listed here instead,
+  without a source.
+</p>
+
+<% if @queries.empty? %>
+  <p class="dim">No shared statements recorded since the last reset.</p>
+<% else %>
+  <p><%= shared_statements_total(@summary) %></p>
+
+  <%= render "pg_peek/reports/report", report: @queries %>
+<% end %>
