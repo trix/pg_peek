@@ -7,8 +7,20 @@ class PgPeek::ApplicationController < ActionController::Base
   helper_method :switchable_databases
 
   before_action :authenticate
+  around_action :in_english
 
   private
+    # The interface is written in English, and so must be the words Rails
+    # supplies for it. Under a host's own locale they come out mixed -- "stats
+    # since 3 Tage ago", "4.002 statement" -- since the inflections that turn
+    # "statement" into "statements" belong to a locale too.
+    #
+    # A host may have ruled English out of its available locales, and then
+    # there is nothing better to switch to than what it already uses.
+    def in_english(&)
+      I18n.with_locale(I18n.locale_available?(:en) ? :en : I18n.locale, &)
+    end
+
     def switchable_databases
       @switchable_databases ||= PgPeek::Database.all.select(&:configured?)
     end

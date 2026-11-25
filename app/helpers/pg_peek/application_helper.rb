@@ -101,11 +101,6 @@ module PgPeek::ApplicationHelper
     time_ago_in_words(timestamp) + " ago"
   end
 
-  # Every pg_stat_statements figure is cumulative since the last reset. Each
-  # page says so in its header and links to the extension's page, which
-  # resets it.
-  # Within the first hour the figures cover too little to go by, and the link
-  # is marked provisional.
   # "12 statements, 4,301 calls, 7.2h of database time (31.4% of the total)"
   def shared_statements_total(summary)
     exec_ms = summary["exec_time_ms"].to_f
@@ -117,6 +112,11 @@ module PgPeek::ApplicationHelper
       "#{format_duration_from_ms(exec_ms)} of database time#{share}"
   end
 
+  # Every pg_stat_statements figure is cumulative since the last reset. Each
+  # page says so in its header and links to the extension's page, which
+  # resets it.
+  # Within the first hour the figures cover too little to go by, and the link
+  # is marked provisional.
   def stats_since_link(database, reset_at)
     provisional = reset_at && reset_at > 1.hour.ago
 
