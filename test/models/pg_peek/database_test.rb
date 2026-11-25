@@ -12,12 +12,13 @@ class PgPeek::DatabaseTest < ActiveSupport::TestCase
     assert_not_includes peers, "primary"
   end
 
-  test "the test database is not a replica" do
+  test "a database is a replica when database.yml declares it one" do
     assert_not @database.replica?
+    assert PgPeek::Database.find("primary_replica").replica?
   end
 
-  test "a database with no connection configured is not asked and is not a replica" do
-    assert_not PgPeek::Database.new(name: "nowhere").replica?
+  test "lists the databases Rails hides for being replicas" do
+    assert_includes PgPeek::Database.all.map(&:name), "primary_replica"
   end
 
   test "version_full returns full PostgreSQL version string" do

@@ -9,6 +9,10 @@ development:
   primary:
     <<: *default
     database: pg_peek_development
+  primary_replica:
+    <<: *default
+    database: pg_peek_development
+    replica: true
   queue:
     <<: *default
     database: pg_peek_queue_development
@@ -22,6 +26,10 @@ test:
   primary:
     <<: *default
     database: pg_peek_test
+  primary_replica:
+    <<: *default
+    database: pg_peek_test
+    replica: true
   queue:
     <<: *default
     database: pg_peek_queue_test

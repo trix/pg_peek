@@ -1,8 +1,10 @@
 class PgPeek::Database
   attr_reader :name, :primary
 
+  # Hidden ones included: that is what Rails calls the entries marked
+  # replica: true, and a replica is as much worth looking at as its primary.
   def self.available_postgres_databases
-    ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).select do |db_config|
+    ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, include_hidden: true).select do |db_config|
       db_config.adapter == "postgresql"
     end
   end
@@ -11,7 +13,8 @@ class PgPeek::Database
     available_postgres_databases.map do |db_config|
       PgPeek::Database.new(
         name: db_config.name,
-        primary: db_config.primary?
+        primary: db_config.primary?,
+        replica: db_config.replica?
       )
     end
   end
@@ -20,9 +23,18 @@ class PgPeek::Database
     all.find { |db| db.name == name }
   end
 
-  def initialize(name:, primary: false)
+  def initialize(name:, primary: false, replica: false)
     @name = name
     @primary = primary
+    @replica = replica
+  end
+
+  # As database.yml declares it, with replica: true.
+  #
+  # A replica keeps statistics of its own: what it counts is what was sent to
+  # it, not what the primary did.
+  def replica?
+    @replica
   end
 
   def to_param
@@ -57,20 +69,6 @@ class PgPeek::Database
 
   def connection_configured?
     connection.present?
-  end
-
-  # A replica keeps statistics of its own: what it counts is what was sent to
-  # it, not what the primary did. Every page reads differently for knowing it.
-  #
-  # The server is asked rather than database.yml. Rails leaves the entries
-  # marked replica: true out of the configurations pg_peek lists, so that flag
-  # never gets here; and what matters is the server this connection really
-  # reaches, whatever the entry was called.
-  def replica?
-    return @replica if defined?(@replica)
-
-    @replica = connection_configured? &&
-      connection.select_value(PgPeek::QueryLoader.mark("SELECT pg_is_in_recovery()")) == true
   end
 
   def version_full
