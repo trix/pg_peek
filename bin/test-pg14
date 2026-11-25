@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-POSTGRES_PORT=5440 bin/rails db:test:prepare
-POSTGRES_PORT=5440 bin/rails test "$@"

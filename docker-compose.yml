@@ -10,15 +10,6 @@ x-postgres-common: &postgres-common
     retries: 5
 
 services:
-  postgres14:
-    <<: *postgres-common
-    image: postgres:14-alpine
-    container_name: pg_peek_postgres14
-    ports:
-      - "5440:5432"
-    volumes:
-      - postgres14_data:/var/lib/postgresql/data
-
   postgres15:
     <<: *postgres-common
     image: postgres:15-alpine
@@ -54,11 +45,10 @@ services:
       - "5444:5432"
     volumes:
       # PostgreSQL 18 images moved PGDATA into a versioned subdirectory, so the
-      # volume mounts one level up from where 14-17 mount it.
+      # volume mounts one level up from where 15-17 mount it.
       - postgres18_data:/var/lib/postgresql
 
 volumes:
-  postgres14_data:
   postgres15_data:
   postgres16_data:
   postgres17_data:

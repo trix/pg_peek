@@ -18,9 +18,6 @@ The report SQL differs per major Postgres version (see Query Loading below), so 
 # Run databases
 docker compose up -d
 
-# PostgreSQL 14
-bin/test-pg14
-
 # PostgreSQL 15
 bin/test-pg15
 
@@ -83,7 +80,7 @@ Concrete reports: `Databases`, `Tables`, `Queries` (and `JobQueries < Queries`, 
 
 ### Query Loading
 
-Raw SQL lives under `app/queries/pg_peek/pgNN/**/*.sql`, one directory per major Postgres version (14-18), loaded by `PgPeek::QueryLoader` (`lib/pg_peek/query_loader.rb`) using `database.major_version`. Reports and models call `QueryLoader.load("indexes/all", pg_version: ...)` rather than embedding SQL inline. New Postgres-version-specific behavior means adding a query file per version, not branching Ruby.
+Raw SQL lives under `app/queries/pg_peek/pgNN/**/*.sql`, one directory per major Postgres version (15-18), loaded by `PgPeek::QueryLoader` (`lib/pg_peek/query_loader.rb`) using `database.major_version`. Reports and models call `QueryLoader.load("indexes/all", pg_version: ...)` rather than embedding SQL inline. New Postgres-version-specific behavior means adding a query file per version, not branching Ruby.
 
 ### Controllers
 

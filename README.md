@@ -138,7 +138,7 @@ until your application has run for a while afterwards.
 ### Requirements
 
 - Rails 8.1+
-- PostgreSQL 14+ with `pg_stat_statements` extension (for query analysis features)
+- PostgreSQL 15+ with `pg_stat_statements` extension (for query analysis features)
 - Only officially supported PostgreSQL versions are supported
 
 ### Why not pg_stat_monitor?
@@ -185,9 +185,6 @@ bin/rails s
 ```bash
 # Run databases
 docker compose up -d
-
-# PostgreSQL 14
-bin/test-pg14
 
 # PostgreSQL 15
 bin/test-pg15
