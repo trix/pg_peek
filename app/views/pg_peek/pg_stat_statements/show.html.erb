@@ -8,6 +8,24 @@
 
 <section>
   <h2>collection</h2>
+  <% if dealloc.positive? %>
+    <article aria-label="Statements dropped">
+      <header><%= pluralize(number_with_delimiter(dealloc), "statement") %> dropped since the last reset</header>
+      <p>
+        The server keeps statistics for
+        <% if settings["max"] %><%= number_with_delimiter(settings["max"].to_i) %><% else %>a fixed number of<% end %>
+        distinct statements, across every database on it. When that is full it
+        drops the least-executed ones to make room, and their calls and time go
+        with them, so every total in pg_peek undercounts.
+      </p>
+      <p>
+        Raise <code>pg_stat_statements.max</code> (needs a server restart)<% if settings["track_utility"] == "on" %>,
+        turn <code>pg_stat_statements.track_utility</code> off if utility
+        commands such as <code>NOTIFY</code> are what fills it,<% end %>
+        or reset more often.
+      </p>
+    </article>
+  <% end %>
   <table>
     <tbody>
       <tr>
@@ -28,27 +46,13 @@
       </tr>
     </tbody>
   </table>
-  <% if dealloc.positive? %>
-    <p class="dim">
-      The server dropped statements to make room since the last reset, so every
-      total here undercounts. Raise <code>pg_stat_statements.max</code>
-      (needs a server restart) or reset more often.
-    </p>
-  <% end %>
 </section>
 
 <section id="settings">
   <h2>settings</h2>
-  <table>
-    <tbody>
-      <% settings.each do |name, value| %>
-        <tr>
-          <th><code>pg_stat_statements.<%= name %></code></th>
-          <td><%= value %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <div class="settings">
+    <%= render partial: "setting", collection: @pg_stat_statements.setting_details %>
+  </div>
   <% if @pg_stat_statements.outdated? %>
     <p class="dim">
       Version <%= @pg_stat_statements.default_version %> is available:
@@ -62,7 +66,10 @@
   <p class="dim">
     Queries, endpoints and jobs are cumulative since the last reset. A reset
     starts a fresh window: exact counts and attribution, at the price of the
-    history so far. Restarting PostgreSQL clears them too.
+    history so far.
+    <% if settings["save"] == "off" %>
+      Restarting PostgreSQL clears them too, as <code>pg_stat_statements.save</code> is off.
+    <% end %>
     <% peers = @database.server_peers %>
     <% if peers.any? %>
       It also clears <%= peers.map(&:name).to_sentence %>, which

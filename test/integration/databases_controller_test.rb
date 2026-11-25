@@ -79,6 +79,33 @@ class DatabasesControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href='/pg_peek/databases/primary/endpoints/admin/posts/index']", text: "admin/posts#index"
   end
 
+  test "show flags statements dropped for want of room in attention" do
+    database = PgPeek::Database.find("primary")
+    skip_unless_usable(PgPeek::PgStatStatements.new(database: database))
+    new_stats = PgPeek::PgStatStatements.method(:new)
+    full = ->(**args) { new_stats.call(**args).tap { |stats| stats.define_singleton_method(:dealloc) { 1934 } } }
+
+    PgPeek::PgStatStatements.stub(:new, full) do
+      get pg_peek.database_path(database)
+    end
+
+    assert_select "ul.attention li a[href='#{pg_peek.database_pg_stat_statements_path(database)}']",
+                  text: "pg_stat_statements is full: 1,934 statements dropped, totals undercount"
+  end
+
+  test "show says nothing of dropped statements while there is room" do
+    database = PgPeek::Database.find("primary")
+    skip_unless_usable(PgPeek::PgStatStatements.new(database: database))
+    new_stats = PgPeek::PgStatStatements.method(:new)
+    roomy = ->(**args) { new_stats.call(**args).tap { |stats| stats.define_singleton_method(:dealloc) { 0 } } }
+
+    PgPeek::PgStatStatements.stub(:new, roomy) do
+      get pg_peek.database_path(database)
+    end
+
+    assert_select "ul.attention li", text: /pg_stat_statements is full/, count: 0
+  end
+
   test "show flags unused indexes in attention" do
     database = PgPeek::Database.find("primary")
     database.connection.execute("CREATE INDEX index_posts_on_body_for_test ON posts (body)")

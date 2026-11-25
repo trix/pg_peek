@@ -126,10 +126,16 @@ class PgPeek::PgStatStatements
 
   # pg_stat_statements.* settings, by name without the prefix.
   def settings
-    return {} unless usable?
+    setting_details.to_h { |setting| [ setting.name, setting.value ] }
+  end
 
-    connection.select_rows(PgPeek::QueryLoader.mark(<<~SQL)).to_h
-      SELECT substr(name, length('pg_stat_statements.') + 1), setting
+  # The same settings with what pg_settings knows of each: the values it
+  # takes, its default, and what it takes for a change to apply.
+  def setting_details
+    return [] unless usable?
+
+    @setting_details ||= connection.select_all(PgPeek::QueryLoader.mark(<<~SQL)).map { |row| Setting.new(row) }
+      SELECT name, setting, vartype, min_val, max_val, enumvals, boot_val, context, short_desc, pending_restart
       FROM pg_settings WHERE name LIKE 'pg_stat_statements.%' ORDER BY name
     SQL
   end
