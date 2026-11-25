@@ -47,6 +47,14 @@ class PgPeek::DatabasesController < PgPeek::ApplicationController
         items << { text: "cache hit ratio #{ratio}% (below #{threshold}%)", href: nil }
       end
 
+      # Counted since the last reset, so it stays until one: whatever was
+      # dropped is missing from every total of the window.
+      dropped = @pg_stat_statements.dealloc.to_i
+      if dropped.positive?
+        items << { text: "pg_stat_statements is full: #{helpers.pluralize(helpers.number_with_delimiter(dropped), "statement")} dropped, totals undercount",
+                   href: database_pg_stat_statements_path(@database) }
+      end
+
       @database.tables_with_dead_tuples(PgPeek.config.dead_tuple_warning_threshold).each do |table|
         vacuumed = table["last_autovacuum"] ? "last autovacuum #{helpers.time_ago_in_words(table["last_autovacuum"])} ago" : "never autovacuumed"
         items << { text: "#{table["relname"]}: #{table["dead_ratio"]}% dead tuples, #{vacuumed}",

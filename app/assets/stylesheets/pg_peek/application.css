@@ -196,6 +196,8 @@ tbody th {
   border-bottom: 1px solid var(--line);
 }
 tbody th + td { text-align: right; }
+/* The whole row answers to the pointer, not the value alone. */
+tbody tr:hover th { background: var(--panel); }
 
 .num { text-align: right; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
@@ -261,6 +263,35 @@ button.clamp-toggle:hover { color: var(--fg); }
 details.tags { border: 0; padding: 0; margin: 0.25rem 0 0; font-size: inherit; }
 details.tags summary { display: inline; }
 details.tags[open] summary { margin-bottom: 0.25rem; }
+
+/* A setting and what it does. Each is a row that opens: name and (i) on the
+   left, value on the right like a label/value table, and the explanation
+   underneath at the width of the page rather than of a table cell. */
+.settings { margin: 0.5rem 0; }
+details.setting { border: 0; border-bottom: 1px solid var(--line); padding: 0; margin: 0; }
+details.setting summary {
+  display: flex;
+  align-items: center;
+  gap: 1.25ch;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+}
+details.setting[open] summary { margin-bottom: 0; }
+details.setting .value { margin-left: auto; color: var(--fg); }
+details.setting .info {
+  width: 1.5em;
+  height: 1.5em;
+  line-height: 1.4em;
+  text-align: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.85em;
+  font-style: italic;
+}
+details.setting .about { max-width: 80ch; padding: 0.35rem 0 0.75rem; }
+details.setting .about p { margin: 0 0 0.6rem; }
+details.setting .about p:last-child { margin-bottom: 0; }
+details.setting dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1.5ch; margin: 0 0 0.6rem; }
+details.setting dd { margin: 0; }
 
 /* Panels ------------------------------------------------------------------ */
 

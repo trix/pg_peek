@@ -66,6 +66,7 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 ### Key Models
 
+- **`PgStatStatements::Setting`** (`app/models/pg_peek/pg_stat_statements/setting.rb`): One `pg_stat_statements.*` setting for the extension's page. Values, range, default and what a change takes come from `pg_settings`; what the setting means for pg_peek's figures is written in `ABOUT`. A setting missing from `ABOUT` falls back on the server's `short_desc`. Each is a row that opens (`_setting.html.erb`, a `<details>`)
 - **`Database`** (`app/models/pg_peek/database.rb`): Abstracts a configured PostgreSQL database. Enumerates databases from `ActiveRecord::Base.configurations`, resolves its connection via `PgPeek.config.connections`, reports version/extensions/tables/vitals, and finds its `server_peers` (other configured databases on the same host:port - relevant because production tends to give each database its own server while review apps put several on one cluster). `replica?` is `replica: true` from `database.yml`; Rails hides such entries from `configs_for`, so they are read with `include_hidden: true`; the overview shows it first among the vitals, because a replica's statistics are its own.
 
 - **`Table`** (`app/models/pg_peek/table.rb`): Per-table statistics from `pg_stat_user_tables`/`pg_statio_user_tables` - cache hit ratios, scan counts, dead tuple ratio, vacuum/analyze history. `Table.inline_stats_for` batch-fetches cache ratios for the tables list in one round trip.
