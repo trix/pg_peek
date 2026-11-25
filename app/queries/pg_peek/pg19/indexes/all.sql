@@ -1,11 +1,15 @@
 -- Every index on a user table, with how often it has been scanned since the
 -- statistics were last reset. Constraint indexes are marked so a zero scan
 -- count is not mistaken for waste: they earn their keep on writes.
+--
+-- stats_reset is the index's own: empty until its counters are reset, alone
+-- or with the rest of its database.
 SELECT
   s.relname AS table_name,
   s.indexrelname AS index_name,
   s.idx_scan AS scans,
   s.idx_tup_read AS tuples_read,
+  s.stats_reset,
   pg_relation_size(s.indexrelid) AS size_bytes,
   pg_size_pretty(pg_relation_size(s.indexrelid)) AS size,
   i.indisprimary AS primary_key,
