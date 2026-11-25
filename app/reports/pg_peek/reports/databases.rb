@@ -31,8 +31,8 @@ class PgPeek::Reports::Databases < PgPeek::Report
     end
 
     def role_for(database)
+      return "replica" if database.replica?
       return "primary" if database.primary
-      return "replica" if database.replica
 
       ""
     end

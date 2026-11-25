@@ -1,5 +1,5 @@
 class PgPeek::Database
-  attr_reader :name, :primary, :replica, :schema_format
+  attr_reader :name, :primary
 
   def self.available_postgres_databases
     ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).select do |db_config|
@@ -11,9 +11,7 @@ class PgPeek::Database
     available_postgres_databases.map do |db_config|
       PgPeek::Database.new(
         name: db_config.name,
-        primary: db_config.primary?,
-        replica: db_config.replica?,
-        schema_format: db_config.schema_format
+        primary: db_config.primary?
       )
     end
   end
@@ -22,11 +20,9 @@ class PgPeek::Database
     all.find { |db| db.name == name }
   end
 
-  def initialize(name:, primary: false, replica: false, schema_format:)
+  def initialize(name:, primary: false)
     @name = name
     @primary = primary
-    @replica = replica
-    @schema_format = schema_format
   end
 
   def to_param
@@ -61,6 +57,20 @@ class PgPeek::Database
 
   def connection_configured?
     connection.present?
+  end
+
+  # A replica keeps statistics of its own: what it counts is what was sent to
+  # it, not what the primary did. Every page reads differently for knowing it.
+  #
+  # The server is asked rather than database.yml. Rails leaves the entries
+  # marked replica: true out of the configurations pg_peek lists, so that flag
+  # never gets here; and what matters is the server this connection really
+  # reaches, whatever the entry was called.
+  def replica?
+    return @replica if defined?(@replica)
+
+    @replica = connection_configured? &&
+      connection.select_value(PgPeek::QueryLoader.mark("SELECT pg_is_in_recovery()")) == true
   end
 
   def version_full

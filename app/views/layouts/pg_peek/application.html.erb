@@ -41,6 +41,9 @@
               <% else %>
                 <%= link_to @database.name, database_path(@database) %>
               <% end %>
+              <% if @database.replica? %>
+                <span class="replica" title="Statistics are this server's own, not the primary's">replica</span>
+              <% end %>
             </li>
           <% end %>
         </ul>

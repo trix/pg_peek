@@ -66,7 +66,7 @@ The engine is mounted at `/pg_peek` and follows Rails conventions with namespace
 
 ### Key Models
 
-- **`Database`** (`app/models/pg_peek/database.rb`): Abstracts a configured PostgreSQL database. Enumerates databases from `ActiveRecord::Base.configurations`, resolves its connection via `PgPeek.config.connections`, reports version/extensions/tables/vitals, and finds its `server_peers` (other configured databases on the same host:port - relevant because production tends to give each database its own server while review apps put several on one cluster).
+- **`Database`** (`app/models/pg_peek/database.rb`): Abstracts a configured PostgreSQL database. Enumerates databases from `ActiveRecord::Base.configurations`, resolves its connection via `PgPeek.config.connections`, reports version/extensions/tables/vitals, and finds its `server_peers` (other configured databases on the same host:port - relevant because production tends to give each database its own server while review apps put several on one cluster). `replica?` asks the server (`pg_is_in_recovery()`), not `database.yml`: Rails hides `replica: true` entries from `configs_for`, so that flag never reaches pg_peek; the layout shows it beside the database name on every page, because a replica's statistics are its own.
 
 - **`Table`** (`app/models/pg_peek/table.rb`): Per-table statistics from `pg_stat_user_tables`/`pg_statio_user_tables` - cache hit ratios, scan counts, dead tuple ratio, vacuum/analyze history. `Table.inline_stats_for` batch-fetches cache ratios for the tables list in one round trip.
 
