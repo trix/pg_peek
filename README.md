@@ -168,8 +168,8 @@ to be installed. One data source that works everywhere beats two that disagree.
 # Install dependencies
 bundle install
 
-# Start PostgreSQL 18 (default for development)
-docker compose up postgres18 -d
+# Start PostgreSQL 19 (default for development)
+docker compose up postgres19 -d
 
 # Setup the dummy app database
 bin/rails db:setup
