@@ -7,6 +7,8 @@ module PgPeek::ReportHelper
     return "" if value.nil? || value.to_s.empty?
 
     content = format_value(report, column, value)
+    caption = column.caption(row)
+    content = safe_join([ tag.div(caption, class: "dim"), content ]) if caption
     return content unless column.bar?
 
     safe_join([ content, intensity_bar(value.to_f, report.max_for(column)) ], " ")

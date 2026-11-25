@@ -46,6 +46,28 @@ class ActivityControllerTest < ActionDispatch::IntegrationTest
     assert_select "tr[data-filter-value='#{conn.backend_pid}']", text: /idle/
   end
 
+  test "show marks an idle session's query as its last and dims how long it has sat" do
+    idle = open_pg_session
+    idle.exec("SELECT 1")
+    running = open_pg_session
+    running.send_query(sleeping_query)
+    wait_for("one idle and one running session") do
+      sessions.idle.any? { |row| row["pid"].to_i == idle.backend_pid } &&
+        sessions.active.any? { |row| row["pid"].to_i == running.backend_pid }
+    end
+
+    get pg_peek.database_activity_path(@database, idle: 1)
+
+    assert_select "tr[data-filter-value='#{idle.backend_pid}']" do
+      assert_select "td.num.dim", count: 1
+      assert_select "td div.dim", text: "last query"
+    end
+    assert_select "tr[data-filter-value='#{running.backend_pid}']" do
+      assert_select "td.dim", count: 0
+      assert_select "td div.dim", text: "last query", count: 0
+    end
+  end
+
   test "show refreshes only at the offered intervals" do
     get pg_peek.database_activity_path(@database, refresh: 5)
     assert_select "meta[http-equiv=refresh][content='5']"

@@ -135,6 +135,21 @@ class PgPeek::ReportHelperTest < ActionView::TestCase
     assert_includes markup, '<span class="leaf">PostSummaryJob</span>'
   end
 
+  test "puts a column's caption above the value, on the rows it names" do
+    column = PgPeek::Column.new(:query, format: :sql, caption: ->(row) { "last query" if row["state"] == "idle" })
+    idle = PgPeek::Report::Row.new("state" => "idle", "query" => "SELECT 1")
+    active = PgPeek::Report::Row.new("state" => "active", "query" => "SELECT 1")
+
+    assert format_cell(@report, column, idle).to_s.start_with?('<div class="dim">last query</div><code')
+    assert_not_includes format_cell(@report, column, active).to_s, "last query"
+  end
+
+  test "captions no empty cell" do
+    column = PgPeek::Column.new(:query, format: :sql, caption: ->(_row) { "last query" })
+
+    assert_equal "", format_cell(@report, column, PgPeek::Report::Row.new("query" => ""))
+  end
+
   test "renders nothing for a missing value rather than the word nil" do
     assert_equal "", format_cell(@report, @report.columns.first, PgPeek::Report::Row.new({}))
   end

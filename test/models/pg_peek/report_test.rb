@@ -48,6 +48,22 @@ class PgPeek::ReportTest < ActiveSupport::TestCase
     assert_equal :text, column.format
   end
 
+  test "dims and captions nothing unless a column says which rows" do
+    plain = PgPeek::Column.new(:anything)
+    told = PgPeek::Column.new(:anything,
+                              dim: ->(row) { row["state"] == "idle" },
+                              caption: ->(row) { "last query" if row["state"] == "idle" })
+    idle = PgPeek::Report::Row.new("state" => "idle")
+    active = PgPeek::Report::Row.new("state" => "active")
+
+    assert_not plain.dim?(idle)
+    assert_nil plain.caption(idle)
+    assert told.dim?(idle)
+    assert_not told.dim?(active)
+    assert_equal "last query", told.caption(idle)
+    assert_nil told.caption(active)
+  end
+
   test "reads values out of a row by column key" do
     report = StubReport.new(database: @database)
     row = report.rows.first
