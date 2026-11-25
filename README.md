@@ -151,11 +151,23 @@ case:
 
 ```ruby
 # config/initializers/pg_peek.rb
+
+# GoodJob: its table, and its checks of who holds which advisory lock
 config.unattributed_queries = [
-  '"good_jobs"',     # a String is matched as it is, anywhere in the statement
-  /FROM pg_locks/i   # a Regexp is matched by PostgreSQL
+  '"good_jobs"',  # a String is matched as it is, anywhere in the statement
+  /pg_locks/i     # a Regexp is matched by PostgreSQL
 ]
+
+# Solid Queue: one prefix covers all of its tables
+config.unattributed_queries = [ '"solid_queue_' ]
 ```
+
+GoodJob reads `pg_locks` both with `FROM` and with `LEFT JOIN`, so the pattern
+names the view alone.
+
+The setting applies to every database. A pattern matches only where such
+statements exist, so naming a queue that lives in a database of its own changes
+nothing for the others.
 
 A Regexp is handed to PostgreSQL as its source, so write it in PostgreSQL's
 dialect: `\y` is a word boundary (`\b` is a backspace there), `\m` and `\M`
