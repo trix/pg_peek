@@ -7,15 +7,15 @@
     <thead>
       <tr>
         <% columns.each do |column| %>
-          <th class="<%= cell_class(column) %>" <%= "title=#{column.title.inspect}".html_safe if column.title %>>
+          <%= tag.th class: cell_class(column), title: column.title do %>
             <%= column.header %>
-          </th>
+          <% end %>
         <% end %>
       </tr>
     </thead>
     <tbody>
       <% rows.each do |row| %>
-        <tr <%= "data-filter-value=#{row.value(report.columns.first).to_s.downcase.inspect}".html_safe %>>
+        <%= tag.tr data: { filter_value: row.value(report.columns.first).to_s.downcase } do %>
           <% columns.each do |column| %>
             <td class="<%= cell_class(column) %>">
               <% if local_assigns[:link] && column.key == local_assigns[:link_column] %>
@@ -25,7 +25,7 @@
               <% end %>
             </td>
           <% end %>
-        </tr>
+        <% end %>
       <% end %>
     </tbody>
   </table>
