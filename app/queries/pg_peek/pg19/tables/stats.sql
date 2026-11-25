@@ -17,6 +17,7 @@ SELECT
   t.autovacuum_count,
   t.analyze_count,
   t.autoanalyze_count,
+  t.stats_reset,
   s.heap_blks_read,
   s.heap_blks_hit,
   s.idx_blks_read,

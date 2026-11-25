@@ -1,7 +1,7 @@
 class PgPeek::Table
   attr_reader :database, :name
 
-  STATS_RESET_QUERY = PgPeek::QueryLoader.mark("SELECT stats_reset FROM pg_stat_bgwriter").freeze
+  SERVER_STATS_RESET_QUERY = PgPeek::QueryLoader.mark("SELECT stats_reset FROM pg_stat_bgwriter").freeze
 
   def self.inline_stats_for(database, table_names)
     return {} if table_names.empty?
@@ -53,11 +53,14 @@ class PgPeek::Table
     @stats ||= fetch_stats
   end
 
+  # Since when this table's counters have been accumulating, which is what
+  # turns them into rates.
+  #
+  # PostgreSQL 19 records it per table: set by a reset of this table alone or
+  # of its whole database, and empty until either happens. Before 19, and
+  # until then, the server's own statistics are the nearest thing there is.
   def stats_reset_at
-    @stats_reset_at ||= begin
-      result = database.connection.execute(STATS_RESET_QUERY)
-      result.first&.dig("stats_reset")
-    end
+    @stats_reset_at ||= stats["stats_reset"] || server_stats_reset_at
   end
 
   def seconds_since_reset
@@ -226,6 +229,10 @@ class PgPeek::Table
   end
 
   private
+
+  def server_stats_reset_at
+    database.connection.execute(SERVER_STATS_RESET_QUERY).first&.dig("stats_reset")
+  end
 
   def fetch_stats
     query = PgPeek::QueryLoader.load("tables/stats", pg_version: database.major_version)

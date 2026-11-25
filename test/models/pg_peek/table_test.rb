@@ -144,6 +144,23 @@ class PgPeek::TableTest < ActiveSupport::TestCase
     assert(reset_at.nil? || reset_at.is_a?(Time), "stats_reset_at should be nil or Time")
   end
 
+  test "stats_reset_at is the table's own reset on PostgreSQL 19" do
+    skip "needs PostgreSQL 19 or later" if @database.major_version < 19
+
+    connection = @database.connection
+    before = connection.select_value("SELECT now()")
+    connection.execute("SELECT pg_stat_reset_single_table_counters('posts'::regclass)")
+    # A test is one transaction, and the statistics views are a snapshot of it.
+    connection.execute("SELECT pg_stat_clear_snapshot()")
+
+    reset_at = PgPeek::Table.new(@database, "posts").stats_reset_at
+    server_reset_at = connection.select_value("SELECT stats_reset FROM pg_stat_bgwriter")
+
+    assert_kind_of Time, reset_at
+    assert_operator reset_at, :>=, before
+    assert_operator reset_at, :>, server_reset_at
+  end
+
   test "seconds_since_reset returns numeric or nil" do
     seconds = @table.seconds_since_reset
 

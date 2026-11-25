@@ -5,6 +5,10 @@
 
 <% seconds_elapsed = @table.seconds_since_reset %>
 
+<% if @table.stats_reset_at %>
+  <p class="dim">counts since <%= format_time_ago(@table.stats_reset_at) %></p>
+<% end %>
+
 <section>
   <h2>cache performance</h2>
   <table>
