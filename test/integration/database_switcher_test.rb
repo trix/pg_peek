@@ -9,7 +9,7 @@ class DatabaseSwitcherTest < ActionDispatch::IntegrationTest
   test "offers every configured database when there is more than one" do
     get pg_peek.database_path(@primary)
 
-    assert_select "select[data-switcher] option", count: 3
+    assert_select "select[data-switcher] option", count: 4
     assert_select "select[data-switcher] option[selected]", text: "primary"
   end
 

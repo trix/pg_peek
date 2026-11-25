@@ -1,6 +1,7 @@
 <h1><%= @database.name %> <small class="dim">overview</small></h1>
 
 <p class="vitals dim">
+  <% if @database.replica? %><span class="replica" title="Statistics are this server's own, not the primary's">replica</span><% end %>
   <span>postgres <%= @database.version %></span>
   <% if @pg_stat_statements.usable? %>
     <span>pg_stat_statements <%= @pg_stat_statements.installed_version %>
@@ -114,15 +115,6 @@ end</code></pre>
     <% end %>
   </section>
 </div>
-
-<details>
-  <summary>database details</summary>
-  <pre>name: <%= @database.name %>
-primary: <%= @database.primary %>
-replica: <%= @database.replica %>
-schema_format: <%= @database.schema_format %>
-version: <%= @database.version_full %></pre>
-</details>
 
 <details>
   <summary>installed extensions</summary>

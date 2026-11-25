@@ -8,7 +8,7 @@ A Rails Engine that provides a web UI for monitoring and analyzing PostgreSQL qu
 - **Query Performance Analysis**: Identify slow queries using the `pg_stat_statements` extension
 - **SQLcommenter Support**: Parses and displays SQLcommenter tags from queries
 - **Endpoint and Active Job Breakdowns**: Groups query cost by controller/action and by job class, with a per-job drill-down into its query shapes
-- **Multi-Database Support**: Works with multiple database configurations (primary, replica, etc.)
+- **Multi-Database Support**: Works with multiple database configurations (primary, replica, etc.). A database declared with `replica: true` in `database.yml` is marked as a replica on its overview, since its statistics are its own. Give it an entry in `config.connections` like any other, naming a class whose connection reaches the replica
 
 ## Installation
 

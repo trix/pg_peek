@@ -19,7 +19,7 @@ class PgStatStatementsControllerTest < ActionDispatch::IntegrationTest
     assert_select "th code", text: "pg_stat_statements.max"
     assert_select "section#reset form[action='#{pg_peek.reset_database_pg_stat_statements_path(@database)}']"
     # The dummy keeps all its databases on one server, as a review app would.
-    assert_select "section#reset p", text: /also clears queue and analytics/
+    assert_select "section#reset p", text: /also clears primary_replica, queue, and analytics/
   end
 
   test "show renders preload instructions when the module is not preloaded" do

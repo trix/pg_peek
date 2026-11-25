@@ -1,8 +1,10 @@
 class PgPeek::Database
-  attr_reader :name, :primary, :replica, :schema_format
+  attr_reader :name, :primary
 
+  # Hidden ones included: that is what Rails calls the entries marked
+  # replica: true, and a replica is as much worth looking at as its primary.
   def self.available_postgres_databases
-    ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).select do |db_config|
+    ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, include_hidden: true).select do |db_config|
       db_config.adapter == "postgresql"
     end
   end
@@ -12,8 +14,7 @@ class PgPeek::Database
       PgPeek::Database.new(
         name: db_config.name,
         primary: db_config.primary?,
-        replica: db_config.replica?,
-        schema_format: db_config.schema_format
+        replica: db_config.replica?
       )
     end
   end
@@ -22,11 +23,18 @@ class PgPeek::Database
     all.find { |db| db.name == name }
   end
 
-  def initialize(name:, primary: false, replica: false, schema_format:)
+  def initialize(name:, primary: false, replica: false)
     @name = name
     @primary = primary
     @replica = replica
-    @schema_format = schema_format
+  end
+
+  # As database.yml declares it, with replica: true.
+  #
+  # A replica keeps statistics of its own: what it counts is what was sent to
+  # it, not what the primary did.
+  def replica?
+    @replica
   end
 
   def to_param

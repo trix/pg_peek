@@ -9,6 +9,13 @@
   </small>
 </div>
 
+<% if @database.replica? %>
+  <p class="dim" data-replica-note>
+    This is a replica, and scan counts are each server's own: an index never
+    scanned here may be in use on the primary, and the other way round.
+  </p>
+<% end %>
+
 <% if @report.unused.any? %>
   <article aria-label="Unused indexes">
     <header>
